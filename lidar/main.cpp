@@ -9,7 +9,6 @@
 #include <SFML\Window.hpp>
 #include <SFML\Graphics.hpp>
 
-/// WINDOW
 const unsigned WIDTH = 480;
 const unsigned HEIGHT = 272;
 const unsigned CHANNELS = 4;
@@ -18,9 +17,36 @@ const sf::Uint32 STYLE = sf::Style::Close | sf::Style::Titlebar;
 sf::RenderWindow window_;
 bool running_ = true;
 
-size_t load_cloud(const std::string & filename, std::vector<std::pair<float, float>>& cloud) {
+struct Cloud {
+	std::vector<std::pair<float, float>> pts;
+	std::vector<std::vector<size_t>> shape;
+	float min = std::numeric_limits<float>::infinity();
+	float max = 0;
+	float avg = 0;
+	float std = 0;
+	size_t size = 0;
+};
+
+void find_shape(Cloud& cloud, float k = 50, float q = 5) {
+	cloud.shape = { {0} };
+	for (size_t i = 1; i < cloud.size; i += 1) {
+		float dist0 = cloud.pts[i - 1].second;
+		float dist1 = cloud.pts[i].second;
+
+		if (std::fabs(dist0 - dist1) <= q) {
+			cloud.shape.back().back() = i;
+		}
+		else if (std::fabs(dist0 - dist1) <= k) {
+			cloud.shape.back().push_back(i);
+		}
+		else {
+			cloud.shape.push_back({ i });
+		}
+	}
+}
+
+void load_cloud(const std::string & filename, Cloud & cloud) {
 	std::ifstream file(filename);
-	size_t cnt = 0;
 	while (file) {
 		std::string line;
 		std::getline(file, line);
@@ -29,13 +55,21 @@ size_t load_cloud(const std::string & filename, std::vector<std::pair<float, flo
 		float angle, dist;
 		std::stringstream sline(line);
 		sline >> angle >> dist;
-		cloud.push_back(std::make_pair(angle, dist));
-		cnt++;
+
+		if (dist > cloud.max) cloud.max = dist;
+		else if (dist < cloud.min) cloud.min = dist;
+		cloud.size++;
+		cloud.avg += dist;
+		cloud.pts.push_back(std::make_pair(angle, dist));
 	}
-	return cnt;
+	cloud.avg /= cloud.size;
+	for (auto & pt : cloud.pts) {
+		cloud.std += (cloud.avg - pt.second) * (cloud.avg - pt.second);
+	}
+	cloud.std = std::sqrt(cloud.std);
 }
 
-void draw_pixel(uint8_t* mat, unsigned x, unsigned y, sf::Color c) {
+void draw_pixel(uint8_t * mat, unsigned x, unsigned y, sf::Color c) {
 	if (x < 0 || x > WIDTH - 1 || y < 0 || y > HEIGHT - 1)
 		return;
 
@@ -44,6 +78,26 @@ void draw_pixel(uint8_t* mat, unsigned x, unsigned y, sf::Color c) {
 	mat[(WIDTH * y + x) * CHANNELS + 2] = c.b;
 	mat[(WIDTH * y + x) * CHANNELS + 3] = c.a;
 }
+
+void draw_cloud_bars(uint8_t* mat, const Cloud & cloud) {
+	unsigned max_height = 200;
+	for (int j = 0; j < WIDTH; j++) {
+		float dist = cloud.pts[size_t(j * cloud.size / WIDTH)].second;
+
+		unsigned height = std::round(dist / cloud.max * max_height);
+
+		for (int i = 0; i < height; i++) {
+			draw_pixel(mat, j, HEIGHT - i - 1, sf::Color(255, 255, 255));
+		}
+	}
+
+	for (int x = 0; x < WIDTH; x++) {
+		draw_pixel(mat, x, HEIGHT - max_height - 1, sf::Color(0, 0, 255));
+	}
+}
+
+///
+
 
 void add_to_pixel(uint8_t* mat, unsigned x, unsigned y, sf::Color c) {
 	if (x < 0 || x > WIDTH - 1 || y < 0 || y > HEIGHT - 1)
@@ -105,9 +159,9 @@ void save_cloud_cart(const std::string& filename, const std::vector<std::pair<fl
 }
 
 int main(int argc, char** argv) {
-	std::vector<std::pair<float, float>> cloud;
+	Cloud cloud;
 	load_cloud("../clouds/10", cloud);
-	save_cloud_cart("../10.txt", cloud);
+	// save_cloud_cart("../10.txt", cloud);
 
 	uint8_t* mat = new uint8_t[WIDTH * HEIGHT * CHANNELS];
 	fill_mat(mat, sf::Color::Black);
@@ -116,6 +170,9 @@ int main(int argc, char** argv) {
 	sf::Texture texture;
 	texture.create(WIDTH, HEIGHT);
 	sf::Sprite sprite(texture);
+
+	float k = 50, q = 5;
+
 	while (running_) {
 		sf::Event event;
 		while (window_.pollEvent(event)) {
@@ -123,25 +180,40 @@ int main(int argc, char** argv) {
 				running_ = false;
 				break;
 			}
+			else if (event.type == sf::Event::KeyReleased) {
+				if (event.key.code == sf::Keyboard::W) {
+					k += 100;
+				}
+				else if (event.key.code == sf::Keyboard::S) {
+					k -= 100;
+				}
+				else if (event.key.code == sf::Keyboard::A) {
+					q += 100;
+				}
+				else if (event.key.code == sf::Keyboard::D) {
+					q -= 100;
+				}
+			}
 		}
-		rotate_cloud(cloud, 0.1);
-		fill_mat(mat, sf::Color::Black);
-		cloud_to_mat(cloud, mat, sf::Color(255, 255, 255), 0.0390);
-		//cloud_to_mat(cloud, mat, sf::Color(255 - 180, 255 - 180, 255 - 180), 0.0395);
-		//cloud_to_mat(cloud, mat, sf::Color(255 - 150, 255 - 150, 255 - 150), 0.0400);
-		//cloud_to_mat(cloud, mat, sf::Color(255 - 120, 255 - 120, 255 - 120), 0.0405);
-		//cloud_to_mat(cloud, mat, sf::Color(255 - 90 , 255 - 90 , 255 - 90 ), 0.0410);
-		//cloud_to_mat(cloud, mat, sf::Color(255 - 60 , 255 - 60 , 255 - 60 ), 0.0415);
-		//cloud_to_mat(cloud, mat, sf::Color(255 - 30 , 255 - 30 , 255 - 30 ), 0.0420);
-		//cloud_to_mat(cloud, mat, sf::Color(255, 255, 255), 0.0425);
-		draw_pixel(mat, WIDTH / 2 - 1, HEIGHT / 2 - 1, sf::Color(255, 0, 0));
-		draw_pixel(mat, WIDTH / 2 + 1, HEIGHT / 2 + 1, sf::Color(255, 0, 0));
-		draw_pixel(mat, WIDTH / 2 + 1, HEIGHT / 2 - 1, sf::Color(255, 0, 0));
-		draw_pixel(mat, WIDTH / 2 - 1, HEIGHT / 2 + 1, sf::Color(255, 0, 0));
-		draw_pixel(mat, WIDTH / 2, HEIGHT / 2, sf::Color(255, 0, 0));
+
+		find_shape(cloud, k, q);
+		std::vector<sf::VertexArray> v(cloud.shape.size(), sf::VertexArray(sf::PrimitiveType::LinesStrip));
+		for (int i = 0; i < cloud.shape.size(); i++) {
+			for (int j = 0; j < cloud.shape[i].size(); j++) {
+				float phi = cloud.pts[cloud.shape[i][j]].first;
+				float dist = cloud.pts[cloud.shape[i][j]].second;
+				int x = std::round(dist * std::sin(phi * (acos(-1) / 180.0)) * 0.04) + WIDTH / 2;
+				int y = std::round(dist * std::cos(phi * (acos(-1) / 180.0)) * 0.04) + HEIGHT / 2;
+
+				v[i].append(sf::Vertex(sf::Vector2f(x, y)));
+			}
+		}
+
 		texture.update(mat);
 
 		window_.draw(sprite);
+		for (auto& w : v)
+			window_.draw(w);
 		window_.display();
 	}
 
