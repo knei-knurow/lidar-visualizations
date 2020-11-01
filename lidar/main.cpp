@@ -22,7 +22,7 @@ bool running_ = true;
 
 struct Cloud {
 	std::vector<std::pair<float, float>> pts;
-	std::vector<std::vector<size_t>> shape;
+	std::vector<std::vector<std::pair<int, int>>> shape;
 	float min = std::numeric_limits<float>::infinity();
 	float max = 0;
 	float avg = 0;
@@ -38,22 +38,22 @@ std::pair<int, int> cyl_to_cart(std::pair<float, float> pt, float k = 1) {
 	return std::make_pair(x, y);
 }
 
-void find_shape(Cloud& cloud, float q = 50) {
-	cloud.shape = { {0} };
+void find_shape(Cloud& cloud, float q = 50, float k = 0.09) {
+	cloud.shape = {{cyl_to_cart(cloud.pts[0])}};
 	for (size_t i = 1; i < cloud.size; i++) {
 		float dist0 = cloud.pts[i - 1].second;
 		float dist1 = cloud.pts[i].second;
 
 		if (std::fabs(dist0 - dist1) <= q) {
-			cloud.shape.back().push_back(i);
+			cloud.shape.back().push_back(cyl_to_cart(cloud.pts[i], k));
 		}
 		else {
-			cloud.shape.push_back({ i });
+			cloud.shape.push_back({cyl_to_cart(cloud.pts[i], k)});
 		}
 	}
 }
 
-void load_cloud(const std::string & filename, Cloud & cloud, int q = 50) {
+void load_cloud(const std::string & filename, Cloud & cloud, int q = 50, float k = 0.09) {
 	std::ifstream file(filename);
 	while (file) {
 		std::string line;
@@ -75,7 +75,7 @@ void load_cloud(const std::string & filename, Cloud & cloud, int q = 50) {
 		cloud.std += (cloud.avg - pt.second) * (cloud.avg - pt.second);
 	}
 	cloud.std = std::sqrt(cloud.std);
-	find_shape(cloud, q);
+	find_shape(cloud, q, k);
 }
 
 void draw_pixel(uint8_t * mat, unsigned x, unsigned y, sf::Color c) {
@@ -144,30 +144,16 @@ void draw_cloud(uint8_t* mat, const Cloud& cloud, float k = 0.04, sf::Color c = 
 }
 
 void draw_cloud_shape(uint8_t* mat, const Cloud& cloud, float k = 0.04, sf::Color c = sf::Color::White) {
-	std::pair<int, int> pt_prev, pt = cyl_to_cart(cloud.pts.back(), k);
+	std::pair<int, int> pt_prev, pt = cloud.pts.back();
 	float dist_prev, dist = cloud.pts.back().second;
 	for (int i = 0; i < cloud.shape.size(); i++) {
 		pt_prev = pt;
 		dist_prev = dist;
-		pt = cyl_to_cart(cloud.pts[cloud.shape[i].front()], k);
-		dist = cloud.pts[cloud.shape[i].front()].second;
-		// draw_ray(mat, pt.first, pt.second, pt_prev.first, pt_prev.second, sf::Color::Magenta);
-		//if (i > 0) {
-		//	if (dist_prev < dist) {
-		//		float x1 = float(pt_prev.first + (pt_prev.first - ORIGIN_X) / 10);
-		//		float x2 = float(pt_prev.second + (pt_prev.second - ORIGIN_Y) / 10);
-		//		draw_ray(mat, pt_prev.first, pt_prev.second, x1, x2, sf::Color(64, 64, 64));
-		//	}
-		//	else {
-		//		float x1 = float(pt.first + (pt.first - ORIGIN_X) / 10);
-		//		float x2 = float(pt.second + (pt.second - ORIGIN_Y) / 10);
-		//		draw_ray(mat, pt.first, pt.second, x1, x2, sf::Color(64, 64, 64));
-		//	}
-		//}
+		pt = cloud.shape[i].front();
 		draw_pixel(mat, pt.first, pt.second, c);
 		for (int j = 1; j < cloud.shape[i].size(); j++) {
 			pt_prev = pt;
-			pt = cyl_to_cart(cloud.pts[cloud.shape[i][j]], k);
+			pt = cloud.shape[i][j];
 			draw_line(mat, pt_prev.first, pt_prev.second, pt.first, pt.second, sf::Color(128, 128, 128));
 		}
 	}
@@ -232,7 +218,7 @@ void save_cloud_cart(const std::string& filename, const std::vector<std::pair<fl
 
 int main(int argc, char** argv) {
 	Cloud cloud;
-	load_cloud("../clouds/10", cloud, 50);
+	load_cloud("../clouds/10", cloud, 50, 0.09);
 	// save_cloud_cart("../10.txt", cloud);
 
 	uint8_t* mat = new uint8_t[WIDTH * HEIGHT * CHANNELS];
