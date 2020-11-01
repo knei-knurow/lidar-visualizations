@@ -160,8 +160,22 @@ void draw_pixel(uint8_t * mat, unsigned x, unsigned y, sf::Color c) {
 	mat[(WIDTH * y + x) * CHANNELS + 3] = c.a;
 }
 
+sf::Color calc_color(int x, int y) {
+	x = (float(x) / WIDTH) * 255;
+	y = (float(y) / HEIGHT) * 255;
+
+	uint8_t r = 255 - std::abs(int(x) - int(y));
+	uint8_t g = (y / 2 + 128) * (float(255 - x) / 255);
+	uint8_t b = (x + y > 255) ? (255) : (x + y);
+	return sf::Color(r, g, b, 255);
+}
+
 void draw_point(uint8_t* mat, unsigned x, unsigned y, sf::Color c) {
-	draw_pixel(mat, x, y, sf::Color(c.r, c.g, c.b, c.a));
+	c = calc_color(x, y);
+	draw_pixel(mat, x + 1, y, c);
+	draw_pixel(mat, x + 1, y + 1, c);
+	draw_pixel(mat, x, y, c);
+	draw_pixel(mat, x, y + 1, c);
 }
 
 void draw_cloud_bars(uint8_t * mat, const Cloud & cloud) {
@@ -219,7 +233,7 @@ void draw_cloud_shape(uint8_t* mat, const Cloud& cloud, float k = 0.04, sf::Colo
 		pt_prev = pt;
 		dist_prev = dist;
 		pt = cloud.shape[i].front();
-		draw_pixel(mat, pt.first, pt.second, c);
+		draw_point(mat, pt.first, pt.second, c);
 		for (int j = 1; j < cloud.shape[i].size(); j++) {
 			pt_prev = pt;
 			pt = cloud.shape[i][j];
@@ -296,6 +310,7 @@ int main(int argc, char** argv) {
 		draw_cloud_shape(mat, cloud, 0.08, sf::Color(color / 2, color / 2, color / 2));
 		//draw_cloud(mat, cloud, 0.08, sf::Color(color, color, color));
 		draw_pixel(mat, ORIGIN_X, ORIGIN_Y, sf::Color(255, 0, 0));
+
 		window_.draw(sprite);
 		texture.update(mat);
 		window_.display();
