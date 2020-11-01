@@ -13,8 +13,8 @@
 const int WIDTH = 480 * 2;
 const int HEIGHT = 272 * 2;
 const int CHANNELS = 4;
-const int ORIGIN_X = WIDTH / 2;
-const int ORIGIN_Y = HEIGHT / 2 - HEIGHT / 3;
+int ORIGIN_X = WIDTH / 2;
+int ORIGIN_Y = HEIGHT / 2 - HEIGHT / 3;
 const std::string TITLE = "STM32F746G-DISCO | 480x272";
 const sf::Uint32 STYLE = sf::Style::Close | sf::Style::Titlebar;
 sf::RenderWindow window_;
@@ -38,22 +38,87 @@ std::pair<int, int> cyl_to_cart(std::pair<float, float> pt, float k = 1) {
 	return std::make_pair(x, y);
 }
 
-void find_shape(Cloud& cloud, float q = 50, float k = 0.09) {
-	cloud.shape = {{cyl_to_cart(cloud.pts[0])}};
+float perpendicular_dst(const std::pair<float, float>& pt, const std::pair<float, float>& line_start, const std::pair<float, float>& line_end) {
+	float dx = line_end.first - line_start.first;
+	float dy = line_end.second - line_start.second;
+
+	float mag = std::pow(std::pow(dx, 2.0) + std::pow(dy, 2.0), 0.5);
+	if (mag > 0.0) {
+		dx /= mag; dy /= mag;
+	}
+
+	float pvx = pt.first - line_start.first;
+	float pvy = pt.second - line_start.second;
+
+	float pvdot = dx * pvx + dy * pvy;
+
+	float dsx = pvdot * dx;
+	float dsy = pvdot * dy;
+
+	float ax = pvx - dsx;
+	float ay = pvy - dsy;
+
+	return std::pow(std::pow(ax, 2.0) + std::pow(ay, 2.0), 0.5);
+}
+
+void ramer_douglas_peucker(std::vector<std::pair<int, int>> point_list, double epsilon, std::vector<std::pair<int, int>>& out)
+{
+	if (point_list.size() < 2)
+		return;
+
+	float dmax = 0.0;
+	size_t index = 0;
+	size_t end = point_list.size() - 1;
+	for (size_t i = 1; i < end; i++) {
+		float d = perpendicular_dst(point_list[i], point_list[0], point_list[end]);
+		if (d > dmax) {
+			index = i;
+			dmax = d;
+		}
+	}
+
+	if (dmax > epsilon) {
+		std::vector<std::pair<int, int>> recResults1;
+		std::vector<std::pair<int, int>> recResults2;
+		std::vector<std::pair<int, int>> firstLine(point_list.begin(), point_list.begin() + index + 1);
+		std::vector<std::pair<int, int>> lastLine(point_list.begin() + index, point_list.end());
+		ramer_douglas_peucker(firstLine, epsilon, recResults1);
+		ramer_douglas_peucker(lastLine, epsilon, recResults2);
+
+		out.assign(recResults1.begin(), recResults1.end() - 1);
+		out.insert(out.end(), recResults2.begin(), recResults2.end());
+		if (out.size() < 2)
+			return;
+	}
+	else {
+		out.clear();
+		out.push_back(point_list[0]);
+		out.push_back(point_list[end]);
+	}
+}
+
+void smooth_shape(Cloud& cloud, float epsilon) {
+	for (auto& shape : cloud.shape) {
+		ramer_douglas_peucker(shape, epsilon, shape);
+	}
+}
+
+void find_shape(Cloud& cloud, float q = 50, float scale = 0.09) {
+	cloud.shape = {{cyl_to_cart(cloud.pts[0], scale)}};
 	for (size_t i = 1; i < cloud.size; i++) {
 		float dist0 = cloud.pts[i - 1].second;
 		float dist1 = cloud.pts[i].second;
 
 		if (std::fabs(dist0 - dist1) <= q) {
-			cloud.shape.back().push_back(cyl_to_cart(cloud.pts[i], k));
+			cloud.shape.back().push_back(cyl_to_cart(cloud.pts[i], scale));
 		}
 		else {
-			cloud.shape.push_back({cyl_to_cart(cloud.pts[i], k)});
+			cloud.shape.push_back({cyl_to_cart(cloud.pts[i], scale)});
 		}
 	}
 }
 
-void load_cloud(const std::string & filename, Cloud & cloud, int q = 50, float k = 0.09) {
+void load_cloud(const std::string & filename, Cloud & cloud, int k, float scale) {
 	std::ifstream file(filename);
 	while (file) {
 		std::string line;
@@ -75,7 +140,14 @@ void load_cloud(const std::string & filename, Cloud & cloud, int q = 50, float k
 		cloud.std += (cloud.avg - pt.second) * (cloud.avg - pt.second);
 	}
 	cloud.std = std::sqrt(cloud.std);
-	find_shape(cloud, q, k);
+	find_shape(cloud, k, scale);
+}
+
+void rotate_cloud(Cloud& cloud, float angle) {
+	for (auto& i : cloud.pts) {
+		i.first += angle;
+		if (i.first >= 360) i.first -= 360;
+	}
 }
 
 void draw_pixel(uint8_t * mat, unsigned x, unsigned y, sf::Color c) {
@@ -89,10 +161,7 @@ void draw_pixel(uint8_t * mat, unsigned x, unsigned y, sf::Color c) {
 }
 
 void draw_point(uint8_t* mat, unsigned x, unsigned y, sf::Color c) {
-	draw_pixel(mat, x + 1, y + 1, c);
-	draw_pixel(mat, x + 1, y, c);
-	draw_pixel(mat, x, y + 1, c);
-	draw_pixel(mat, x, y, c);
+	draw_pixel(mat, x, y, sf::Color(c.r, c.g, c.b, c.a));
 }
 
 void draw_cloud_bars(uint8_t * mat, const Cloud & cloud) {
@@ -107,9 +176,9 @@ void draw_cloud_bars(uint8_t * mat, const Cloud & cloud) {
 		}
 	}
 
-	for (int x = 0; x < WIDTH; x++) {
-		draw_pixel(mat, x, HEIGHT - max_height - 1, sf::Color(0, 0, 255));
-	}
+	//for (int x = 0; x < WIDTH; x++) {
+	//	draw_pixel(mat, x, HEIGHT - max_height - 1, sf::Color(0, 0, 255));
+	//}
 }
 
 void draw_line(uint8_t* mat, float x0, float y0, float x1, float y1, const sf::Color color) {
@@ -154,7 +223,7 @@ void draw_cloud_shape(uint8_t* mat, const Cloud& cloud, float k = 0.04, sf::Colo
 		for (int j = 1; j < cloud.shape[i].size(); j++) {
 			pt_prev = pt;
 			pt = cloud.shape[i][j];
-			draw_line(mat, pt_prev.first, pt_prev.second, pt.first, pt.second, sf::Color(128, 128, 128));
+			draw_line(mat, pt_prev.first, pt_prev.second, pt.first, pt.second, c);
 		}
 	}
 }
@@ -168,57 +237,17 @@ void draw_background(uint8_t* mat, sf::Color c) {
 	}
 }
 
-///
-
-void add_to_pixel(uint8_t* mat, unsigned x, unsigned y, sf::Color c) {
-	if (x < 0 || x > WIDTH - 1 || y < 0 || y > HEIGHT - 1)
-		return;
-	auto r = (WIDTH * y + x) * CHANNELS + 0;
-	auto g = (WIDTH * y + x)* CHANNELS + 1;
-	auto b = (WIDTH * y + x)* CHANNELS + 2;
-	auto a = (WIDTH * y + x)* CHANNELS + 3;
-
-
-	mat[r] = (int(mat[r]) + c.r) > 255 ? 255 : (mat[r] + c.r);
-	mat[g] = (int(mat[g]) + c.g) > 255 ? 255 : (mat[g] + c.g);
-	mat[b] = (int(mat[b]) + c.b) > 255 ? 255 : (mat[b] + c.b);
-	mat[a] = (int(mat[a]) + c.a) > 255 ? 255 : (mat[a] + c.a);
-}
-
-void cloud_to_mat(std::vector<std::pair<float, float>>& cloud, uint8_t* mat, sf::Color c, float k=0.04) {
-	for (auto& pt : cloud) {
-		float phi = pt.first;
-		float dist = pt.second;
-		int x = std::round(dist * std::sin(phi * (acos(-1) / 180.0)) * k) + WIDTH / 2;
-		int y = std::round(dist * std::cos(phi * (acos(-1) / 180.0)) * k) + HEIGHT / 2;
-
-		add_to_pixel(mat, x, y, c);
-	}
-}
-
-void rotate_cloud(std::vector<std::pair<float, float>>& cloud, float angle) {
-	for (auto& pt : cloud) {
-		pt.first += angle;
-		if (pt.first >= 360) pt.first -= 360;
-	}
-}
-
-void save_cloud_cart(const std::string& filename, const std::vector<std::pair<float, float>>& cloud) {
-	std::ofstream file(filename);
-	for (auto& pt : cloud) {
-		float phi = pt.first;
-		float dist = pt.second;
-		float x = dist * std::sin(phi * (acos(-1) / 180.0));
-		float y = dist * std::cos(phi * (acos(-1) / 180.0));
-
-		for (int i = 0; i < 20; i++)
-			file << x << " ; " << y << " ; " << i << "0.0" << std::endl;
-	}
+bool save_screenshot(uint8_t* mat) {
+	sf::Texture texture;
+	texture.create(WIDTH, HEIGHT);
+	sf::Sprite sprite(texture);
+	texture.update(mat);
+	return texture.copyToImage().saveToFile(std::to_string(time(0)) + ".png");
 }
 
 int main(int argc, char** argv) {
 	Cloud cloud;
-	load_cloud("../clouds/10", cloud, 50, 0.09);
+	load_cloud("../clouds/10", cloud, 50000, 0.08);
 	// save_cloud_cart("../10.txt", cloud);
 
 	uint8_t* mat = new uint8_t[WIDTH * HEIGHT * CHANNELS];
@@ -229,8 +258,8 @@ int main(int argc, char** argv) {
 	texture.create(WIDTH, HEIGHT);
 	sf::Sprite sprite(texture);
 
-	float k = 50;
-
+	uint8_t color = 255;
+	float k = 1, epsilon = 0;
 	while (running_) {
 		sf::Event event;
 		while (window_.pollEvent(event)) {
@@ -239,27 +268,36 @@ int main(int argc, char** argv) {
 				break;
 			}
 			else if (event.type == sf::Event::KeyPressed) {
-				if (event.key.code == sf::Keyboard::W) {
+				if (event.key.code == sf::Keyboard::Up) {
 					k += 30;
 				}
-				else if (event.key.code == sf::Keyboard::S) {
-					if (k > 1)
-						k -= 30;
+				else if (event.key.code == sf::Keyboard::Down) {
+					k -= 30;
+					if (k <= 0) k = 1;
 				}
-				find_shape(cloud, k);
+				else if (event.key.code == sf::Keyboard::W) {
+					epsilon += 0.1;
+				}
+				else if (event.key.code == sf::Keyboard::S) {
+					epsilon -= 0.1;
+					if (epsilon <= 0) epsilon = 0;
+				}
+				else if (event.key.code == sf::Keyboard::K) {
+					save_screenshot(mat);
+				}
+				find_shape(cloud, k, 0.08);
+				smooth_shape(cloud, epsilon);
+				break;
 			}
 		}
 		
 		draw_background(mat, sf::Color(0, 0, 0));
-		window_.draw(sprite);
-		draw_cloud_shape(mat, cloud, 0.09, sf::Color(128, 128, 128));
-		draw_cloud(mat, cloud, 0.09);
+		draw_cloud_bars(mat, cloud);
+		draw_cloud_shape(mat, cloud, 0.08, sf::Color(color / 2, color / 2, color / 2));
+		//draw_cloud(mat, cloud, 0.08, sf::Color(color, color, color));
 		draw_pixel(mat, ORIGIN_X, ORIGIN_Y, sf::Color(255, 0, 0));
+		window_.draw(sprite);
 		texture.update(mat);
-
-		//for (auto& w : v)
-		//	window_.draw(w);
-
 		window_.display();
 	}
 
