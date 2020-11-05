@@ -73,6 +73,8 @@ void draw_cloud_bars(uint8_t* mat, const Cloud& cloud);
 
 void draw_cloud(uint8_t* mat, const Cloud& cloud, float k = 0.04, color c = color::White);
 
+void draw_connected_cloud(uint8_t* mat, const Cloud& cloud, float scale = 0, int y_offset = 0, float lightness = 1.0);
+
 void draw_cloud_shape(uint8_t* mat, const Cloud& cloud, int y_offset = 0, float lightness = 1.0);
 
 color calc_color(float v, float lightness = 1.0);

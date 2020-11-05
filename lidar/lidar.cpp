@@ -151,6 +151,28 @@ void draw_cloud(uint8_t* mat, const Cloud& cloud, float k, color c) {
 	}
 }
 
+void draw_connected_cloud(uint8_t* mat, const Cloud& cloud, float scale, int y_offset, float lightness) {
+	if (scale == 0)
+		scale = calc_scale(cloud);
+
+	if (cloud.size == 0)
+		return;
+
+	int cnt = 1;
+	auto first_pt = cyl_to_cart(cloud.pts[0], scale);
+	auto last_pt = first_pt;
+	for (int i = 1; i < cloud.size; i++) {
+		auto pt = cyl_to_cart(cloud.pts[i], scale);
+		auto c = calc_color(float(cnt) / float(cloud.size), lightness);
+
+		draw_line(mat, last_pt.first, last_pt.second + y_offset, pt.first, pt.second + y_offset, c);
+		last_pt = pt;
+		cnt++;
+	}
+	auto c = calc_color(float(cnt) / float(cloud.size), lightness);
+	draw_line(mat, last_pt.first, last_pt.second + y_offset, first_pt.first, first_pt.second + y_offset, c);
+}
+
 void draw_cloud_shape(uint8_t* mat, const Cloud& cloud, int y_offset, float lightness) {
 	std::pair<int, int> pt_prev, pt = cloud.pts.back();
 	float dist_prev, dist = cloud.pts.back().second;
@@ -214,11 +236,11 @@ color calc_color(float v, float lightness) {
 //
 // Point cloud calculations
 //
-std::pair<int, int> cyl_to_cart(std::pair<float, float> pt, float k) {
+std::pair<int, int> cyl_to_cart(std::pair<float, float> pt, float scale) {
 	float phi = pt.first;
 	float dist = pt.second;
-	int x = std::round(dist * std::sin(phi * (acos(-1) / 180.0)) * k) + ORIGIN_X;
-	int y = std::round(dist * std::cos(phi * (acos(-1) / 180.0)) * k) + ORIGIN_Y;
+	int x = std::round(dist * std::sin(phi * (acos(-1) / 180.0)) * scale) + ORIGIN_X;
+	int y = std::round(dist * std::cos(phi * (acos(-1) / 180.0)) * scale) + ORIGIN_Y;
 	return std::make_pair(x, y);
 }
 

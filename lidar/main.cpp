@@ -13,7 +13,7 @@
 
 int main(int argc, char** argv) {
 	Cloud cloud;
-	load_cloud("../clouds/1", cloud, 10000, 0);
+	load_cloud("../clouds/debug.txt", cloud, 10000, 0);
 	// save_cloud_cart("../10.txt", cloud);
 
 	uint8_t* mat = new uint8_t[WIDTH * HEIGHT * CHANNELS];
@@ -63,15 +63,19 @@ int main(int argc, char** argv) {
 		draw_background(mat, COLOR_BACKGROUND);
 		draw_grid(mat, COLOR_GRID);
 		draw_point(mat, ORIGIN_X, ORIGIN_Y, color(255, 255, 255), 1.0);
-		draw_cloud_shape(mat, cloud, 3, 0.4);
-		draw_cloud_shape(mat, cloud, 0, 0.6);
-		draw_cloud_shape(mat, cloud, -3, 0.8);
-		draw_cloud_shape(mat, cloud, -6, 1.0);
+		//draw_cloud_shape(mat, cloud, 3, 0.4);
+		//draw_cloud_shape(mat, cloud, 0, 0.6);
+		//draw_cloud_shape(mat, cloud, -3, 0.8);
+		//draw_cloud_shape(mat, cloud, -6, 1.0);
 		draw_cloud_bars(mat, cloud);
 
 
 		rotate_cloud(cloud, 0.1);
-		find_shape(cloud, 10000);
+		draw_connected_cloud(mat, cloud, 0, +3, 0.4);
+		draw_connected_cloud(mat, cloud, 0, +0, 0.6);
+		draw_connected_cloud(mat, cloud, 0, -3, 0.8);
+		draw_connected_cloud(mat, cloud, 0, -6, 1.0);
+		/// find_shape(cloud, 10000);
 		// smooth_shape(cloud, epsilon);
 
 		/*for (int i = 0; i < WIDTH; i++) {
