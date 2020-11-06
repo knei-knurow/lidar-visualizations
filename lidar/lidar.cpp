@@ -42,7 +42,7 @@ void load_cloud(const std::string& filename, Cloud& cloud, int k, float scale) {
 		cloud.std += (cloud.avg - pt.second) * (cloud.avg - pt.second);
 	}
 	cloud.std = std::sqrt(cloud.std);
-	find_shape(cloud, k, scale);
+	// find_shape(cloud, k, scale);
 }
 
 bool save_screenshot(uint8_t* mat, std::string filename) {
