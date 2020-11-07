@@ -10,11 +10,12 @@
 #include <SFML\Window.hpp>
 #include <SFML\Graphics.hpp>
 #include "lidar.h"
+#include "characters.h"
 
 Color::Color(uint8_t r, uint8_t g, uint8_t b) {
 	this->r = r;
 	this->g = g;
-	this->g = g;
+	this->b = b;
 }
 
 //
@@ -32,7 +33,7 @@ void load_cloud(const std::string& filename, Cloud& cloud, int k, float scale) {
 		sline >> angle >> dist;
 
 		if (dist > cloud.max) cloud.max = dist;
-		else if (dist < cloud.min) cloud.min = dist;
+		if (dist < cloud.min) cloud.min = dist;
 		cloud.size++;
 		cloud.avg += dist;
 		cloud.pts.push_back(std::make_pair(angle, dist));
@@ -134,8 +135,9 @@ void draw_cloud_bars(uint8_t* mat, const Cloud& cloud) {
 
 		unsigned width = unsigned(std::round(dist / cloud.max * max_width));
 
+		color c = calc_color(float(j * cloud.size / HEIGHT) / float(cloud.size));
 		for (int i = 0; i < width; i++) {
-			draw_pixel(mat, i, j, calc_color(float(j * cloud.size / HEIGHT) / float(cloud.size)));
+			draw_pixel(mat, i, j, c);
 		}
 	}
 }
@@ -151,7 +153,7 @@ void draw_cloud(uint8_t* mat, const Cloud& cloud, float k, color c) {
 	}
 }
 
-void draw_connected_cloud(uint8_t* mat, const Cloud& cloud, float scale, int y_offset, float lightness) {
+void draw_connected_cloud(uint8_t* mat, const Cloud& cloud, float scale, int y_offset, float lightness, bool marks) {
 	if (scale == 0)
 		scale = calc_scale(cloud);
 
@@ -161,16 +163,29 @@ void draw_connected_cloud(uint8_t* mat, const Cloud& cloud, float scale, int y_o
 	int cnt = 1;
 	auto first_pt = cyl_to_cart(cloud.pts[0], scale);
 	auto last_pt = first_pt;
+	std::vector<size_t> mark_pt_idx;
+	if (cloud.pts[0].second == cloud.max || cloud.pts[0].second == cloud.min)
+		mark_pt_idx.push_back(0);
 	for (int i = 1; i < cloud.size; i++) {
 		auto pt = cyl_to_cart(cloud.pts[i], scale);
 		auto c = calc_color(float(cnt) / float(cloud.size), lightness);
 
+		if (cloud.pts[i].second == cloud.max || cloud.pts[i].second == cloud.min)
+			mark_pt_idx.push_back(i);
 		draw_line(mat, last_pt.first, last_pt.second + y_offset, pt.first, pt.second + y_offset, c);
 		last_pt = pt;
 		cnt++;
 	}
 	auto c = calc_color(float(cnt) / float(cloud.size), lightness);
 	draw_line(mat, last_pt.first, last_pt.second + y_offset, first_pt.first, first_pt.second + y_offset, c);
+
+	if (marks) {
+		for (auto i : mark_pt_idx) {
+			auto pt = cyl_to_cart(cloud.pts[i], scale);
+			draw_point(mat, pt.first, pt.second + y_offset, color(255, 255, 255));
+			draw_mark(mat, pt.first, pt.second + y_offset, unsigned(cloud.pts[i].second / 1000), unsigned(cloud.pts[i].second) % 1000, color(255, 255, 255));
+		}
+	}
 }
 
 void draw_cloud_shape(uint8_t* mat, const Cloud& cloud, int y_offset, float lightness) {
@@ -230,6 +245,25 @@ color calc_color(float v, float lightness) {
 	}
 	else {
 		return color(255 * lightness, 255 * lightness, 255 * lightness);
+	}
+}
+
+void draw_mark(uint8_t* mat, unsigned x, unsigned y, unsigned a, unsigned b, color c) {
+	draw_point(mat, x, y, c);
+	auto str = std::to_string(a) + "." + std::to_string(b);
+	x += -12;
+	y += 5;
+	for (int ch : str) {
+		if (ch == '.') ch = CHAR_DOT;
+		else ch -= '0';
+
+		for (int cy = 0; cy < CHAR_HEIGHT; cy++) {
+			for (int cx = 0; cx < CHAR_MAT[ch][cy].size(); cx++) {
+				if (CHAR_MAT[ch][cy][cx] == '#')
+					draw_pixel(mat, x + cx, y + cy, c);
+			}
+		}
+		x += CHAR_MAT[ch][0].size() + 1;
 	}
 }
 

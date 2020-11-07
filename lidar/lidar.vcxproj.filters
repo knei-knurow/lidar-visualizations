@@ -26,5 +26,8 @@
     <ClInclude Include="lidar.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="characters.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
