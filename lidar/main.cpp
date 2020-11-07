@@ -13,7 +13,7 @@
 
 int main(int argc, char** argv) {
 	Cloud cloud;
-	load_cloud("../clouds/10", cloud, 10000, 0);
+	load_cloud("../clouds/40", cloud, 0, 0);
 	// save_cloud_cart("../10.txt", cloud);
 
 	uint8_t* mat = new uint8_t[WIDTH * HEIGHT * CHANNELS];
