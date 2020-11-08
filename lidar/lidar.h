@@ -12,20 +12,26 @@
 #include <SFML\Window.hpp>
 #include <SFML\Graphics.hpp>
 
-typedef sf::Color color;
+#ifdef WINDOWED_APP
+const int WIDTH = 480 * 2;
+const int HEIGHT = 272 * 2;
+#else
+const int WIDTH = 480;
+const int HEIGHT = 272;
+#endif // WINDOWED_APP
 
-const int WIDTH = 640;// 480;
-const int HEIGHT = 380; // 272;
 const int CHANNELS = 4;
 const int ORIGIN_X = WIDTH / 2;
 const int ORIGIN_Y = HEIGHT / 2;
 
+typedef sf::Color color;
+
 const color COLOR_BACKGROUND = color(16, 16, 24);
 const color COLOR_BACKGROUND_GRID = color(36, 36, 48);
 const color COLOR_GRID = color(36, 36, 48);
-const color COLOR_CLOUD0 = color(255, 127, 0);
-const color COLOR_CLOUD1 = color(0, 0, 255);
-const color COLOR_CLOUD2 = color(0, 255, 200);
+const color COLOR_CLOUD0 = color(0, 255, 255);
+const color COLOR_CLOUD1 = color(255, 0, 255);
+const color COLOR_CLOUD2 = color(255, 255, 0);
 
 struct Color {
 	uint8_t r;
