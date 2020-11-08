@@ -29,6 +29,11 @@ int main(int argc, char** argv) {
 		std::cout << "Source Types:" << std::endl;
 		std::cout << "\tfile\tfile with lines containing angle [deg] and distance [mm] separated by whitespaces" << std::endl;
 		std::cout << "\tcom\tRPLidar COM port" << std::endl;
+		std::cout << std::endl;
+		std::cout << "GUI Mode Keyboard Shortcuts:" << std::endl;
+		std::cout << "\tS\tsave screenshot" << std::endl;
+		std::cout << "\tA/D\trotate cloud (faster with shift, slower with ctrl)" << std::endl;
+		std::cout << "\tP\trotation on/off" << std::endl;
 		return -1;
 	}
 	else if (argc == 3) {
@@ -61,6 +66,27 @@ int main(int argc, char** argv) {
 			if (event.type == sf::Event::Closed) {
 				running = false;
 				break;
+			}
+			else if (event.type == sf::Event::KeyPressed) {
+				if (event.key.code == sf::Keyboard::S) {
+					if (save_screenshot(mat)) std::cout << "Screenshot saved." << std::endl;
+					else std::cerr << "ERROR: Something went wrong while saving screenshot." << std::endl;
+				}
+				if (event.key.code == sf::Keyboard::P) {
+					rotate = !rotate;
+				}
+				if (event.key.code == sf::Keyboard::D) {
+					float rotation = 5.0f;
+					if (event.key.control) rotation = 1.0f;
+					if (event.key.shift) rotation = 30.0f;
+					rotate_cloud(cloud, rotation);
+				}
+				if (event.key.code == sf::Keyboard::A) {
+					float rotation = 5.0f;
+					if (event.key.control) rotation = 1.0f;
+					if (event.key.shift) rotation = 30.0f;
+					rotate_cloud(cloud, -rotation);
+				}
 			}
 		}
 		
