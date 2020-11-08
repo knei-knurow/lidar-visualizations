@@ -13,7 +13,7 @@
 
 int main(int argc, char** argv) {
 	Cloud cloud;
-	load_cloud("../clouds/40", cloud, 0, 0);
+	load_cloud("../clouds/c0a.txt", cloud, 0, 0);
 	// save_cloud_cart("../10.txt", cloud);
 
 	uint8_t* mat = new uint8_t[WIDTH * HEIGHT * CHANNELS];
@@ -70,7 +70,7 @@ int main(int argc, char** argv) {
 		draw_cloud_bars(mat, cloud);
 
 
-		rotate_cloud(cloud, 0.1);
+		rotate_cloud(cloud, 0.1f);
 		draw_connected_cloud(mat, cloud, 0, +3, 0.4, false);
 		draw_connected_cloud(mat, cloud, 0, +0, 0.6, false);
 		draw_connected_cloud(mat, cloud, 0, -3, 0.8, false);

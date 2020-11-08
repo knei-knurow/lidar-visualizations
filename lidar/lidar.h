@@ -14,8 +14,8 @@
 
 typedef sf::Color color;
 
-const int WIDTH = 480;
-const int HEIGHT = 272;
+const int WIDTH = 640;// 480;
+const int HEIGHT = 380; // 272;
 const int CHANNELS = 4;
 const int ORIGIN_X = WIDTH / 2;
 const int ORIGIN_Y = HEIGHT / 2;
@@ -56,10 +56,10 @@ bool save_screenshot(uint8_t* mat, std::string filename);
 //
 // Drawing
 //
-void draw_pixel(uint8_t* mat, unsigned x, unsigned y, color c);
+void draw_pixel(uint8_t* mat, int x, int y, color c);
 
-void draw_point(uint8_t* mat, unsigned x, unsigned y, color c, float lightness = 1.0);
-void draw_point(uint8_t* mat, unsigned x, unsigned y, float lightness = 1.0);
+void draw_point(uint8_t* mat, int x, int y, color c, float lightness = 1.0);
+void draw_point(uint8_t* mat, int x, int y, float lightness = 1.0);
 
 void draw_line(uint8_t* mat, float x0, float y0, float x1, float y1, color c);
 
