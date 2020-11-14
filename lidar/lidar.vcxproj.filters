@@ -15,25 +15,25 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="lidar.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="communication.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="communication.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="lidar.h">
-      <Filter>Source Files</Filter>
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="characters.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="communication.h">
-      <Filter>Source Files</Filter>
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

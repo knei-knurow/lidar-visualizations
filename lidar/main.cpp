@@ -52,7 +52,7 @@ int main(int argc, char** argv) {
 			return -1;
 		}
 	}
-	
+
 	uint8_t* mat = new uint8_t[WIDTH * HEIGHT * CHANNELS];
 
 	sf::RenderWindow window(sf::VideoMode(WIDTH, HEIGHT), "Lidar", sf::Style::Close | sf::Style::Titlebar);
@@ -90,7 +90,7 @@ int main(int argc, char** argv) {
 				}
 			}
 		}
-		
+
 		draw_background(mat, COLOR_BACKGROUND);
 		draw_grid(mat, COLOR_GRID);
 		draw_point(mat, ORIGIN_X, ORIGIN_Y, color(255, 0, 0), 1.0);
@@ -114,7 +114,7 @@ int main(int argc, char** argv) {
 }
 #else
 int main(int argc, char** argv) {
-
+	
 	return 0;
 }
 #endif // WINDOWED_APP
