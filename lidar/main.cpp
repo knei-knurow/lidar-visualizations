@@ -10,6 +10,7 @@
 #include <SFML\Window.hpp>
 #include <SFML\Graphics.hpp>
 #include "lidar.h"
+#include "communication.h"
 
 #ifdef WINDOWED_APP
 int main(int argc, char** argv) {

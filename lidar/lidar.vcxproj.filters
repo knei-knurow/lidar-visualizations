@@ -21,12 +21,18 @@
     <ClCompile Include="lidar.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="communication.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="lidar.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="characters.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="communication.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
