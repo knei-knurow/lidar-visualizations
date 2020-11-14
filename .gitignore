@@ -5,3 +5,12 @@ Release
 *.user
 *.xcf
 rplidar-sdk/
+stm32-discovery/.settings
+stm32-discovery/Debug
+stm32-discovery/Drivers
+stm32-discovery/FATFS
+stm32-discovery/Middlewares
+stm32-discovery/USB_HOST
+stm32-discovery/Utilities
+stm32-discovery/*.launch
+stm32-discovery/*.ld
