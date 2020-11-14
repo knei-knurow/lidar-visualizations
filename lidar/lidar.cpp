@@ -33,7 +33,7 @@ void load_cloud(const std::string& filename, Cloud& cloud, int k, float scale) {
 		sline >> angle >> dist;
 
 		if (dist > cloud.max) cloud.max = dist;
-		if (dist < cloud.min) cloud.min = dist;
+		if (dist < cloud.min && dist > 0) cloud.min = dist;
 		cloud.size++;
 		cloud.avg += dist;
 		cloud.pts.push_back(std::make_pair(angle, dist));
@@ -166,9 +166,11 @@ void draw_connected_cloud(uint8_t* mat, const Cloud& cloud, float scale, int y_o
 		auto pt = cyl_to_cart(cloud.pts[i], scale);
 		auto c = calc_color(float(cnt) / float(cloud.size), lightness);
 
-		if (cloud.pts[i].second == cloud.max || cloud.pts[i].second == cloud.min)
-			mark_pt_idx.push_back(i);
-		draw_line(mat, float(last_pt.first), float(last_pt.second + y_offset), float(pt.first), float(pt.second) + y_offset, c);
+			if ((cloud.pts[i].second == cloud.max || cloud.pts[i].second == cloud.min))
+				mark_pt_idx.push_back(i);
+			if (cloud.pts[i].second > 0 && cloud.pts[i - 1].second > 0)
+				draw_line(mat, float(last_pt.first), float(last_pt.second + y_offset), float(pt.first), float(pt.second) + y_offset, c);
+
 		last_pt = pt;
 		cnt++;
 	}
