@@ -14,10 +14,24 @@
 
 #ifdef WINDOWED_APP
 int main(int argc, char** argv) {
+	using namespace rp::standalone;
+	
+	rplidar::RPlidarDriver * lidar = rplidar::RPlidarDriver::CreateDriver();;
+	rplidar_launch(lidar);
+
+	std::cout << "." << std::endl;
+
+	rplidar_stop(lidar);
+
+	return 0;
+
 	Cloud cloud;
 	bool rotate = false;
 
-	if (argc < 3) {
+	if (true) {
+
+	}
+	else if (argc < 3) {
 		std::cout << "-----------------------------------------------------------" << std::endl;
 		std::cout << "Lidar Visualizations" << std::endl;
 		std::cout << "-----------------------------------------------------------" << std::endl;
