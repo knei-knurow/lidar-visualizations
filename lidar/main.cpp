@@ -13,26 +13,6 @@
 #include "communication.h"
 
 #ifdef WINDOWED_APP
-void print_help() {
-	std::cout << "-----------------------------------------------------------" << std::endl;
-	std::cout << "Lidar Visualizations" << std::endl;
-	std::cout << "-----------------------------------------------------------" << std::endl;
-	std::cout << "Authors: Bartek Dudek, Szymon Bednorz" << std::endl;
-	std::cout << "Source: https://github.com/knei-knurow/lidar-visualizations" << std::endl;
-	std::cout << std::endl;
-	std::cout << "Usage:" << std::endl;
-	std::cout << "\tlidar [source type] [source]" << std::endl;
-	std::cout << std::endl;
-	std::cout << "Source Types:" << std::endl;
-	std::cout << "\tfile\tfile with lines containing angle [deg] and distance [mm] separated by whitespaces" << std::endl;
-	std::cout << "\tport\tRPLidar port" << std::endl;
-	std::cout << std::endl;
-	std::cout << "GUI Mode Keyboard Shortcuts:" << std::endl;
-	std::cout << "\tS\tsave screenshot" << std::endl;
-	std::cout << "\tA/D\trotate cloud (faster with shift, slower with ctrl)" << std::endl;
-	std::cout << "\tP\trotation on/off" << std::endl;
-}
-
 int main(int argc, char** argv) {
 	using namespace rp::standalone;
 	bool running = true;
@@ -49,7 +29,23 @@ int main(int argc, char** argv) {
 		}
 	}
 	else if (std::strcmp(argv[1], "--help") == 0 || std::strcmp(argv[1], "-h") == 0) {
-		print_help();
+		std::cout << "-----------------------------------------------------------" << std::endl;
+		std::cout << "Lidar Visualizations" << std::endl;
+		std::cout << "-----------------------------------------------------------" << std::endl;
+		std::cout << "Authors: Bartek Dudek, Szymon Bednorz" << std::endl;
+		std::cout << "Source: https://github.com/knei-knurow/lidar-visualizations" << std::endl;
+		std::cout << std::endl;
+		std::cout << "Usage:" << std::endl;
+		std::cout << "\tlidar [source type] [source]" << std::endl;
+		std::cout << std::endl;
+		std::cout << "Source Types:" << std::endl;
+		std::cout << "\tfile\tfile with lines containing angle [deg] and distance [mm] separated by whitespaces" << std::endl;
+		std::cout << "\tport\tRPLidar port" << std::endl;
+		std::cout << std::endl;
+		std::cout << "GUI Mode Keyboard Shortcuts:" << std::endl;
+		std::cout << "\tS\tsave screenshot" << std::endl;
+		std::cout << "\tA/D\trotate cloud (faster with shift, slower with ctrl)" << std::endl;
+		std::cout << "\tP\trotation on/off" << std::endl;
 		running = false;
 	}
 	else if (argc == 3) {
@@ -103,9 +99,9 @@ int main(int argc, char** argv) {
 					else std::cerr << "ERROR: Something went wrong while saving screenshot." << std::endl;
 				}
 				// TXT cloud saving event
-				if (event.key.code == sf::Keyboard::S) {
-					if (save_screenshot(mat)) std::cout << "Screenshot saved." << std::endl;
-					else std::cerr << "ERROR: Something went wrong while saving screenshot." << std::endl;
+				if (event.key.code == sf::Keyboard::T) {
+					if (save_txt(cloud)) std::cout << "TXT cloud saved." << std::endl;
+					else std::cerr << "ERROR: Something went wrong while saving TXT cloud." << std::endl;
 				}
 				// Stop/Start point cloud rotating
 				if (event.key.code == sf::Keyboard::P) {

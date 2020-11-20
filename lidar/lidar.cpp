@@ -79,6 +79,25 @@ bool save_screenshot(uint8_t* mat) {
 	return save_screenshot(mat, std::to_string(time(0)) + ".png");
 }
 
+bool save_txt(const Cloud& cloud, const std::string& filename) {
+	std::ofstream file(filename);
+	if (!file) {
+		return false;
+	}
+	file << "# RPLIDAR SCAN DATA" << std::endl;
+	file << "# Software: https://github.com/knei-knurow/lidar-visualizations" << std::endl;
+	file << "# Authors: Szymon Bednorz, Bartek Dudek" << std::endl;
+	file << "# Angle Distance" << std::endl;
+	for (const auto& pt : cloud.pts) {
+		file << pt.first << " " << pt.second << std::endl;
+	}
+	return true;
+}
+
+bool save_txt(const Cloud& cloud) {
+	return save_txt(cloud, std::to_string(time(0)) + ".txt");
+}
+
 //
 // Drawing
 //

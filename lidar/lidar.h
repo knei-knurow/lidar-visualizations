@@ -14,8 +14,8 @@
 #include <rplidar.h>
 
 #ifdef WINDOWED_APP
-const int WIDTH = 480 * 2;
-const int HEIGHT = 272 * 2;
+const int WIDTH = 1920;
+const int HEIGHT = 1080;
 #else
 const int WIDTH = 480;
 const int HEIGHT = 272;
@@ -61,6 +61,9 @@ void load_cloud_from_buffer(rplidar_response_measurement_node_hq_t* buffer, size
 
 bool save_screenshot(uint8_t* mat);
 bool save_screenshot(uint8_t* mat, std::string filename);
+
+bool save_txt(const Cloud& cloud, const std::string& filename);
+bool save_txt(const Cloud& cloud);
 
 //
 // Drawing
