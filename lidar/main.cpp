@@ -63,7 +63,7 @@ int main(int argc, char** argv) {
 		}
 		else if (std::strcmp(argv[1], "port") == 0) {
 			lidar = rplidar::RPlidarDriver::CreateDriver();
-			if (rplidar_launch(lidar)) {
+			if (rplidar_launch(lidar, argv[2])) {
 				running = false;
 			}
 		}
