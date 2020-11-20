@@ -50,7 +50,7 @@ void load_cloud(const std::string& filename, Cloud& cloud, int k, float scale) {
 void load_cloud_from_buffer(rplidar_response_measurement_node_hq_t* buffer, size_t count, Cloud& cloud) {
 	cloud = Cloud();
 	for (int i = 0; i < count; i++) {
-		float angle = (buffer[i].angle_z_q14 >> RPLIDAR_RESP_MEASUREMENT_ANGLE_SHIFT) / 64.0f;
+		float angle = buffer[i].angle_z_q14 / 65536.0f * 360;
 		float dist = buffer[i].dist_mm_q2 / 4.0f;
 
 		if (dist > cloud.max) cloud.max = dist;
