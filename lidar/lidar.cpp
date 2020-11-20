@@ -76,7 +76,8 @@ bool save_screenshot(uint8_t* mat, std::string filename) {
 }
 
 bool save_screenshot(uint8_t* mat) {
-	return save_screenshot(mat, std::to_string(time(0)) + ".png");
+	static size_t cnt = 0;
+	return save_screenshot(mat, std::to_string(time(0)) + "-" + std::to_string(cnt++) + ".png");
 }
 
 bool save_txt(const Cloud& cloud, const std::string& filename) {
@@ -95,7 +96,8 @@ bool save_txt(const Cloud& cloud, const std::string& filename) {
 }
 
 bool save_txt(const Cloud& cloud) {
-	return save_txt(cloud, std::to_string(time(0)) + ".txt");
+	static size_t cnt = 0;
+	return save_txt(cloud, std::to_string(time(0)) + "-" + std::to_string(cnt++) + ".txt");
 }
 
 //
