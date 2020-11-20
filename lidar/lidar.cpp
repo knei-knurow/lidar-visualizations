@@ -47,12 +47,13 @@ void load_cloud(const std::string& filename, Cloud& cloud, int k, float scale) {
 	// find_shape(cloud, k, scale);
 }
 
-void load_cloud_from_buffer(rplidar_response_measurement_node_hq_t* buffer, size_t count, Cloud& cloud) {
+void load_cloud_from_buffer(rplidar_response_measurement_node_hq_t* buffer, size_t count, Cloud& cloud, bool skip_bad) {
 	cloud = Cloud();
 	for (int i = 0; i < count; i++) {
 		float angle = buffer[i].angle_z_q14 / 65536.0f * 360;
 		float dist = buffer[i].dist_mm_q2 / 4.0f;
 
+		if (skip_bad && dist == 0) continue;
 		if (dist > cloud.max) cloud.max = dist;
 		if (dist < cloud.min && dist > 0) cloud.min = dist;
 		cloud.size++;
@@ -181,16 +182,16 @@ void draw_connected_cloud(uint8_t* mat, const Cloud& cloud, float scale, int y_o
 	auto first_pt = cyl_to_cart(cloud.pts[0], scale);
 	auto last_pt = first_pt;
 	std::vector<size_t> mark_pt_idx;
-	if (cloud.pts[0].second == cloud.max || cloud.pts[0].second == cloud.min)
-		mark_pt_idx.push_back(0);
+	//if (cloud.pts[0].second == cloud.max || cloud.pts[0].second == cloud.min)
+	//	mark_pt_idx.push_back(0);
 	for (int i = 1; i < cloud.size; i++) {
 		auto pt = cyl_to_cart(cloud.pts[i], scale);
 		auto c = calc_color(float(cnt) / float(cloud.size), lightness);
 
-			if ((cloud.pts[i].second == cloud.max || cloud.pts[i].second == cloud.min))
-				mark_pt_idx.push_back(i);
-			if (cloud.pts[i].second > 0 && cloud.pts[i - 1].second > 0)
-				draw_line(mat, float(last_pt.first), float(last_pt.second + y_offset), float(pt.first), float(pt.second) + y_offset, c);
+		/*if ((cloud.pts[i].second == cloud.max || cloud.pts[i].second == cloud.min))
+			mark_pt_idx.push_back(i);*/
+		if (cloud.pts[i].second > 0 && cloud.pts[i - 1].second > 0)
+			draw_line(mat, float(last_pt.first), float(last_pt.second + y_offset), float(pt.first), float(pt.second) + y_offset, c);
 
 		last_pt = pt;
 		cnt++;
