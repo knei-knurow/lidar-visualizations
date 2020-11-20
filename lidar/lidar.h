@@ -11,6 +11,7 @@
 #include <SFML\System.hpp>
 #include <SFML\Window.hpp>
 #include <SFML\Graphics.hpp>
+#include <rplidar.h>
 
 #ifdef WINDOWED_APP
 const int WIDTH = 480 * 2;
@@ -55,6 +56,8 @@ struct Cloud {
 // IO
 //
 void load_cloud(const std::string& filename, Cloud& cloud, int k, float scale = 0);
+
+void load_cloud_from_buffer(rplidar_response_measurement_node_hq_t* buffer, size_t count, Cloud& cloud);
 
 bool save_screenshot(uint8_t* mat);
 bool save_screenshot(uint8_t* mat, std::string filename);
