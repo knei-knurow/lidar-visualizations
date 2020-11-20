@@ -46,6 +46,24 @@ void load_cloud(const std::string& filename, Cloud& cloud, int k, float scale) {
 	// find_shape(cloud, k, scale);
 }
 
+void load_cloud_from_buffer(rplidar_response_measurement_node_hq_t* buffer, size_t count, Cloud& cloud) {
+	cloud = Cloud();
+	for (int i = 0; i < count; i++) {
+		float angle = buffer[i].angle_z_q14, dist = buffer[i].dist_mm_q2;
+
+		if (dist > cloud.max) cloud.max = dist;
+		if (dist < cloud.min && dist > 0) cloud.min = dist;
+		cloud.size++;
+		cloud.avg += dist;
+		cloud.pts.push_back(std::make_pair(angle, dist));
+	}
+	cloud.avg /= cloud.size;
+	for (auto& pt : cloud.pts) {
+		cloud.std += (cloud.avg - pt.second) * (cloud.avg - pt.second);
+	}
+	cloud.std = std::sqrt(cloud.std);
+}
+
 bool save_screenshot(uint8_t* mat, std::string filename) {
 	sf::Texture texture;
 	texture.create(WIDTH, HEIGHT);
@@ -129,6 +147,7 @@ void draw_grid(uint8_t* mat, color c) {
 }
 
 void draw_cloud_bars(uint8_t* mat, const Cloud& cloud) {
+	if (cloud.size == 0) return;
 	unsigned max_width = 80;
 	for (int j = 0; j < HEIGHT; j++) {
 		float dist = cloud.pts[size_t(j * cloud.size / HEIGHT)].second;

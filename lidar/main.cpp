@@ -15,23 +15,15 @@
 #ifdef WINDOWED_APP
 int main(int argc, char** argv) {
 	using namespace rp::standalone;
-	
-	rplidar::RPlidarDriver * lidar = rplidar::RPlidarDriver::CreateDriver();;
-	rplidar_launch(lidar);
 
-	std::cout << "." << std::endl;
+	bool running = true;
 
-	rplidar_stop(lidar);
-
-	return 0;
 
 	Cloud cloud;
+	rplidar::RPlidarDriver* lidar = nullptr;
 	bool rotate = false;
 
-	if (true) {
-
-	}
-	else if (argc < 3) {
+	if (argc < 3) {
 		std::cout << "-----------------------------------------------------------" << std::endl;
 		std::cout << "Lidar Visualizations" << std::endl;
 		std::cout << "-----------------------------------------------------------" << std::endl;
@@ -43,13 +35,13 @@ int main(int argc, char** argv) {
 		std::cout << std::endl;
 		std::cout << "Source Types:" << std::endl;
 		std::cout << "\tfile\tfile with lines containing angle [deg] and distance [mm] separated by whitespaces" << std::endl;
-		std::cout << "\tcom\tRPLidar COM port" << std::endl;
+		std::cout << "\tport\tRPLidar port" << std::endl;
 		std::cout << std::endl;
 		std::cout << "GUI Mode Keyboard Shortcuts:" << std::endl;
 		std::cout << "\tS\tsave screenshot" << std::endl;
 		std::cout << "\tA/D\trotate cloud (faster with shift, slower with ctrl)" << std::endl;
 		std::cout << "\tP\trotation on/off" << std::endl;
-		return -1;
+		running = false;
 	}
 	else if (argc == 3) {
 		if (std::strcmp(argv[1], "file") == 0) {
@@ -58,22 +50,26 @@ int main(int argc, char** argv) {
 			if (cloud.size == 0)
 				std::cerr << "Error: File does not contain a valid cloud." << std::endl;
 		}
-		else if (std::strcmp(argv[1], "com") == 0) {
-			return 0;
+		else if (std::strcmp(argv[1], "port") == 0) {
+			lidar = rplidar::RPlidarDriver::CreateDriver();
+			if (rplidar_launch(lidar)) {
+				running = false;
+			}
 		}
 		else {
 			std::cerr << "Error: Unknown source type." << std::endl;
-			return -1;
+			running = false;
 		}
 	}
 
+	rplidar_response_measurement_node_hq_t* buffer =
+		new rplidar_response_measurement_node_hq_t[rplidar::RPlidarDriver::MAX_SCAN_NODES];
 	uint8_t* mat = new uint8_t[WIDTH * HEIGHT * CHANNELS];
 
 	sf::RenderWindow window(sf::VideoMode(WIDTH, HEIGHT), "Lidar", sf::Style::Close | sf::Style::Titlebar);
 	sf::Texture texture;
 	texture.create(WIDTH, HEIGHT);
 	sf::Sprite sprite(texture);
-	bool running = true;
 	while (running) {
 		sf::sleep(sf::milliseconds(1000 / 30));
 		sf::Event event;
@@ -105,6 +101,12 @@ int main(int argc, char** argv) {
 			}
 		}
 
+		if (lidar) {
+			size_t count;
+			if (!rplidar_scan(lidar, buffer, count, true)) break;
+			load_cloud_from_buffer(buffer, count, cloud);
+		}
+
 		draw_background(mat, COLOR_BACKGROUND);
 		draw_grid(mat, COLOR_GRID);
 		draw_point(mat, ORIGIN_X, ORIGIN_Y, color(255, 0, 0), 1.0);
@@ -123,7 +125,11 @@ int main(int argc, char** argv) {
 		window.display();
 	}
 
+	if (lidar) {
+		rplidar_stop(lidar);
+	}
 	delete[] mat;
+	delete[] buffer;
 	return 0;
 }
 #else
