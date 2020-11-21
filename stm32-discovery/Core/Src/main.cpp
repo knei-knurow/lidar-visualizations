@@ -58,7 +58,7 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define POINTS 200
-
+#define PACKET_SIZE 5
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -71,15 +71,9 @@
 /* USER CODE BEGIN PV */
 
 
-
-Cloud cloud;
-
-volatile unsigned int cntWritten = 0;
-volatile bool startFlagCaptured = false;
-volatile bool saveData = false;
-volatile bool lockCloudArrays = false;
-uint8_t response[LIDAR_BUFFER_SIZE] = {0};
-uint8_t received[5] = {0};
+volatile bool parseData = false;
+volatile bool lockArrays = false;
+uint8_t packet[PACKET_SIZE] = {0};
 uint32_t cnt = 0;
 
 
@@ -90,14 +84,18 @@ float dmin = 0;
 
 float angles[POINTS] = {0.0};
 float distances[POINTS] = {0.0};
+
 uint8_t fakerecv = 0;
-uint8_t fakebuff[3] = {0};
+
+//#### LIDAR COMMANDS ####
+uint8_t reset[] = {0xA5, 0x40};
 uint8_t startscan[] = {0xA5, 0x20};
+
+//UNUSED BUT USEFUL!
 uint8_t get_salmplerate[] = {0xA5, 0x59};
 uint8_t get_health[] = {0xA5, 0x52};
 uint8_t get_info[] = {0xA5, 0x50};
 uint8_t get_lidar_conf[] = {0xA5, 0x84};
-uint8_t reset[] = {0xA5, 0x40};
 uint8_t stop_rq[] = {0xA5, 0x25};
 
 /* USER CODE END PV */
@@ -108,44 +106,42 @@ void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN PFP */
 
 
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 
-
- if(saveData)
+//DMA data-packet interrupt
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+ if(parseData)
  {
-	 HAL_UART_Receive_DMA(&huart6, received, 5); // listen
-  if(cloud.available)
-  {
-  uint16_t quality = received[0] >> 2;
-  uint16_t angle = ((uint16_t)received[1] >> 1) | (((uint16_t)received[2]) << 7);
+	 //Set up listening for another 5 bytes...
+	 HAL_UART_Receive_DMA(&huart6, packet, 5);
+		 if(!lockArrays)
+		 {
 
-  float f_angle = ((float) angle) / 64.0;
+			  //Transforming received data
+			  uint16_t quality = packet[0] >> 2;
+			  uint16_t angle = ((uint16_t)packet[1] >> 1) | (((uint16_t)packet[2]) << 7);
+			  float f_angle = ((float) angle) / 64.0; //Q6->float
 
-  uint16_t distance = ((uint16_t) received[3]) | ((uint16_t)received[4] << 8);
-
-
-  float f_distance = ((float)distance) / 4.0;
-
-  if(f_angle > 0.0 && f_angle < 360.0 && cnt < POINTS)
-  {
-
-	  angles[cnt] = f_angle;
-	  distances[cnt] = f_distance;
-
-	  if(f_distance > dmax)
-	  {
-		  dmax = f_distance;
-		  amax = f_angle;
-	  }
-
-	  cnt++;
-  }
-  //cloud_addPair(cloud, f_angle, f_distance, 0, 10000);
+			  uint16_t distance = ((uint16_t) packet[3]) | ((uint16_t)packet[4] << 8);
+			  float f_distance = ((float)distance) / 4.0; //Q2->float
 
 
-  }
- }
+			  if(f_angle > 0.0 && f_angle < 360.0 && cnt < POINTS)
+			  {
+				  //Add received data to the arrays
+				  angles[cnt] = f_angle;
+				  distances[cnt] = f_distance;
 
+				  //If this is the greatest distance, save it
+				  if(f_distance > dmax)
+				  {
+					  dmax = f_distance;
+					  amax = f_angle;
+				  }
+				  cnt++;
+			  }
+		  }
+	 }
 }
 /* USER CODE END PFP */
 
@@ -203,63 +199,67 @@ int main(void)
   MX_USART6_UART_Init();
   /* USER CODE BEGIN 2 */
 
-  BSP_LCD_Init();
+   BSP_LCD_Init();
    BSP_LCD_LayerDefaultInit(0, LCD_FB_START_ADDRESS);
    BSP_LCD_LayerDefaultInit(1, LCD_FB_START_ADDRESS + 1024 * 1024 * 4);
    BSP_LCD_DisplayOn();
    BSP_LCD_SelectLayer(0);
 
 
-   //BSP_LCD_Clear(LCD_COLOR_GREEN);
-   //BSP_LCD_FillRect(50, 50, 50, 50);
-   //BSP_LCD_SetTransparency(0, 0xFF);
-   HAL_TIM_PWM_Start(&htim12, TIM_CHANNEL_1);
+   	//The PWM value is set to 50% duty cycle by default.
+   	HAL_TIM_PWM_Start(&htim12, TIM_CHANNEL_1);
+
+   	//Two __IO arrays where display layer data is placed
+   	//1024x1024x4 as layers are placed in separate 4MB SDRAM sectors
    	uint8_t* mat = (uint8_t* ) 0xC0000000;
    	uint8_t* mat2= (uint8_t* ) 0xC0000000 + 1024 * 1024 * 4;
 
- 	//load_cloud_fromString(fakefile, cloud, 0, 10000);
 
+   	//DMA transmits 2-byte RESET command over UART6
     HAL_UART_Transmit_DMA(&huart6, reset, 2);
 
 
-
- 	//find_shape(cloud, 0);
- 	//draw_background(mat, COLOR_BACKGROUND);
+    //Clear both layers and wait 1s for the LIDAR to stabilize
  	BSP_LCD_SelectLayer(0);
  	BSP_LCD_Clear(0);
  	BSP_LCD_SelectLayer(1);
  	BSP_LCD_Clear(0);
- 	//draw_grid(mat, COLOR_GRID);
- 	  HAL_Delay(1000);
+ 	HAL_Delay(1000);
 
+ 	//Start-scan request
  	HAL_UART_Transmit_DMA(&huart6, startscan, 2);
- 	//__HAL_UART_CLEAR_IT(&huart6, UART_CLEAR_NEF|UART_CLEAR_OREF); //Clear trash in UART buffer
 
- 	while(fakerecv != 0x5a)
+ 	//TODO: CHANGE FOR CORRECT 2-BYTE CHECK
+ 	//Gets one byte from UART until 0x5A packet. 0xA55A is start signal
+ 	while(fakerecv != 0x5A)
  	{
- 		__HAL_UART_CLEAR_IT(&huart6, UART_CLEAR_NEF|UART_CLEAR_OREF); //Clear tras
- 		HAL_UART_Receive_DMA(&huart6, &fakerecv, 1);
+ 		__HAL_UART_CLEAR_IT(&huart6, UART_CLEAR_NEF|UART_CLEAR_OREF);  //Clear UART cache
+ 		HAL_UART_Receive_DMA(&huart6, &fakerecv, 1); 	//Reveiving a byte will generate interrupt
  	}
- 	//__HAL_UART_CLEAR_IT(&huart6, UART_CLEAR_NEF|UART_CLEAR_OREF); //Clear tras
- 	saveData = true;
- 	 HAL_UART_Receive_DMA(&huart6, received, 5);
- 	//HAL_Delay(1000);
+
+
+ 	//The DMA controller will now parse the data packets received
+ 	//This flag also enables continuous receiving.
+ 	parseData = true;
+
+ 	//receive 5 byte packets !!CONTINUOUSLY!!
+ 	HAL_UART_Receive_DMA(&huart6, packet, 5);
+
  	while(1)
  	{
-
-
-
-
+ 		//Wait for data to be gathered..
  		while(cnt < POINTS);
 
-
-			//BSP_LCD_SetLayerVisible(1, ENABLE);
+ 			//TODO: FIX FLICKERING, SET UP TWO-LAYER DISPLAY MODE
+ 			//BSP_LCD_SetLayerVisible(1, ENABLE);
 			//BSP_LCD_SetLayerVisible(0, DISABLE);
+
+
 			BSP_LCD_SelectLayer(0);
 			BSP_LCD_Clear(0);
 			draw_grid(mat, COLOR_GRID);
 			draw_point(mat, ORIGIN_X, ORIGIN_Y, color(255, 255, 255), 1.0);
-			//lockCloudArrays = true;
+			lockArrays = true;
 			draw_connected_cloud_fromArray(mat, angles, distances, cnt, amin, dmin, amax, dmax, 0, 0, 1.0, true);
 			//draw_cloud_bars_fromArrays(mat, angles, distances, cnt, dmax);
 			cnt = 0;
@@ -267,18 +267,13 @@ int main(void)
 			amin = 0;
 			dmax = 0;
 			dmin = 0;
-			//lockCloudArrays = false;
-			 cloud.available = true;
+			lockArrays = false;
 
 
-			 //HAL_DMA_Start_IT(&hdma_memtomem_dma2_stream0, mat, mat2, 480*272*4);
- 		//hltdc.LayerCfg[1].Alpha = 0;
- 		//hltdc.LayerCfg[0].Alpha = 255;
-
-
-
-		//BSP_LCD_SetLayerVisible(0, ENABLE);
-//		BSP_LCD_SetLayerVisible(1, DISABLE);
+			//(Copy layer 0 to layer 1)
+			//HAL_DMA_Start_IT(&hdma_memtomem_dma2_stream0, mat, mat2, 480*272*4);
+			//BSP_LCD_SetLayerVisible(0, ENABLE);
+			//BSP_LCD_SetLayerVisible(1, DISABLE);
 
 
 
