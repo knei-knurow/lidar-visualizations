@@ -23,9 +23,6 @@ color::color(uint8_t r, uint8_t g, uint8_t b, uint8_t alpha){
 	this->b = b;
 	this->a = alpha;
 
-
-
-
 };
 
 
@@ -62,6 +59,8 @@ void load_cloud(const std::string& filename, Cloud& cloud, int k, float scale) {
 	cloud.std = std::sqrt(cloud.std);
 	find_shape(cloud, k, scale);
 }
+
+
 
 
 void draw_connected_cloud(uint8_t* mat, const Cloud& cloud, float scale, int y_offset, float lightness, bool marks) {
@@ -106,6 +105,95 @@ void draw_connected_cloud(uint8_t* mat, const Cloud& cloud, float scale, int y_o
 			draw_mark(mat, pt.first, pt.second + y_offset, unsigned(cloud.pts[i].second / 1000), unsigned(cloud.pts[i].second) % 1000, color(255, 255, 255));
 		}
 	}
+}
+
+
+void draw_connected_cloud_fromArray(uint8_t* mat, float* angles, float* distances,  int size, float amin, float dmin, float amax, float dmax, float scale,  int y_offset, float lightness, bool marks) {
+
+
+	if (size == 0)
+		return;
+
+	if(scale == 0)
+	{
+		if (dmax == 0) return;
+
+		scale = (HEIGHT) * 0.7 / dmax;
+	}
+
+	int cnt = 1;
+
+	float first_pt_x = pt_getX(angles[0], distances[0], scale);	//auto first_pt = cyl_to_cart(cloud.pts[0], scale);
+	float first_pt_y = pt_getY(angles[0], distances[0], scale);
+
+	float last_pt_x = first_pt_x;	//auto last_pt = first_pt;
+	float last_pt_y = first_pt_y;
+
+	//std::vector<size_t> mark_pt_idx;
+	if (distances[0] == dmax || distances[0] == dmin)
+		angles[0] = 0;
+		distances[0] = 0;
+
+	for (int i = 1; i < size; i++) {
+		//auto pt = cyl_to_cart(cloud.pts[i], scale);
+		float pt_x = pt_getX(angles[i], distances[i], scale);
+		float pt_y = pt_getY(angles[i], distances[i], scale);
+
+		auto c = color(255,255,255);//calc_color(float(cnt) / float(size), lightness);
+
+
+		/*if ((distances[i] == max || distances[i] == min))
+			mark_pt_idx.push_back(i);*/
+
+
+		//if (cloud.pts[i].second > 0 && cloud.pts[i - 1].second > 0)
+		if (distances[i] > 0 && distances[i-1] > 0)
+			draw_line(mat, float(last_pt_x), float(last_pt_y + y_offset), float(pt_x), float(pt_y) + y_offset, c);
+
+		/*
+		if (cloud.pts[i].second == cloud.max || cloud.pts[i].second == cloud.min)
+		mark_pt_idx.push_back(i);
+		draw_line(mat, float(last_pt.first), float(last_pt.second + y_offset), float(pt.first), float(pt.second) + y_offset, c);
+
+		*/
+		last_pt_x = pt_x;
+		last_pt_y = pt_y;
+		cnt++;
+	}
+
+	auto c = color(255, 255, 255);//calc_color(float(cnt) / float(size), lightness);
+	draw_line(mat, float(last_pt_x), float(last_pt_y+ y_offset), float(first_pt_x), float(first_pt_y + y_offset), c);
+
+	if (marks) {
+
+			float pt_max_x = pt_getX(amax, dmax, scale);
+			float pt_max_y = pt_getY(amax, dmax, scale);
+
+			float pt_min_x = pt_getX(amin, dmin, scale);
+			float pt_min_y = pt_getY(amin, dmin, scale);
+
+			//auto pt = cyl_to_cart(cloud.pts[i], scale);
+
+			draw_point(mat, pt_max_x, pt_max_y + y_offset, color(255, 255, 255));
+			draw_mark(mat, pt_max_x, pt_max_y+ y_offset, unsigned(dmax / 1000), unsigned(dmax) % 1000, color(255, 255, 255));
+
+			draw_point(mat, pt_min_x, pt_min_y + y_offset, color(255, 255, 255));
+			draw_mark(mat, pt_min_x, pt_min_y+ y_offset, unsigned(dmin / 1000), unsigned(dmin) % 1000, color(255, 255, 255));
+
+	}
+}
+
+
+float pt_getX(float phi, float dist,  float k)
+{
+return std::round(dist * std::sin(phi * (acos(-1) / 180.0)) * k) + ORIGIN_X;
+}
+
+
+float pt_getY(float phi, float dist, float k)
+{
+
+return std::round(dist * std::cos(phi * (acos(-1) / 180.0)) * k) + ORIGIN_Y;
 }
 
 
@@ -309,6 +397,19 @@ void draw_cloud_bars(uint8_t* mat, const Cloud& cloud) {
 
 		for (int i = 0; i < width; i++) {
 			draw_pixel(mat, i, j, calc_color(float(j * cloud.size / HEIGHT) / float(cloud.size)));
+		}
+	}
+}
+
+void draw_cloud_bars_fromArrays(uint8_t* mat, float * angles, float * distances, int size, float max) {
+	unsigned max_width = 80;
+	for (int j = 0; j < HEIGHT; j++) {
+		float dist = distances[size_t(j * size / HEIGHT)];
+
+		unsigned width = unsigned(std::round(dist / max * max_width));
+
+		for (int i = 0; i < width; i++) {
+			draw_pixel(mat, i, j, calc_color(float(j * size / HEIGHT) / float(size)));
 		}
 	}
 }

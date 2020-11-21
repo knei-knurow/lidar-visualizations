@@ -18,7 +18,7 @@
 
 //typedef sf::Color color;
 
-#define LIDAR_BUFFER_SIZE 8192
+#define LIDAR_BUFFER_SIZE 2048
 
 class color {
 public:
@@ -58,6 +58,7 @@ struct Cloud {
 	float max = 0;
 	float avg = 0;
 	float std = 0;
+	bool available = true;
 	size_t size = 0;
 };
 
@@ -68,11 +69,19 @@ void load_cloud(const std::string& filename, Cloud& cloud, int k, float scale = 
 void load_cloud_fromString(std::string& string, Cloud& cloud, int k, float scale);
 //
 void draw_connected_cloud(uint8_t* mat, const Cloud& cloud, float scale, int y_offset, float lightness, bool marks);
+void draw_connected_cloud_fromArray(uint8_t* mat, float* angles, float* distances, int size, float amin, float dmin, float amax, float dmax, float scale,  int y_offset, float lightness, bool marks);
 void remove_connected_cloud(uint8_t* mat, const Cloud& cloud, float scale, int y_offset, float lightness, bool marks);
 void cloud_addPair(Cloud& cloud, float angle, float distance, int k,  float scale);
+
 // Drawing
 //
 
+
+float pt_getX(float phi, float dist,  float k);
+
+
+
+float pt_getY(float phi, float dist, float k);
 
 void draw_mark(uint8_t* mat, unsigned x, unsigned y, unsigned a, unsigned b, color c);
 
@@ -95,6 +104,9 @@ void draw_cloud_bars(uint8_t* mat, const Cloud& cloud);
 void draw_cloud(uint8_t* mat, const Cloud& cloud, float k = 0.04, color c = color(255,255,255));
 
 void draw_cloud_shape(uint8_t* mat, const Cloud& cloud, int y_offset = 0, float lightness = 1.0);
+
+
+void draw_cloud_bars_fromArrays(uint8_t* mat, float * angles, float * distances, int size, float max);
 
 color calc_color(float v, float lightness = 1.0);
 
