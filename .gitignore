@@ -5,6 +5,7 @@ Release
 *.user
 *.xcf
 rplidar-sdk/
+stm32-discovery/.metadata
 stm32-discovery/.settings
 stm32-discovery/Debug
 stm32-discovery/Drivers
