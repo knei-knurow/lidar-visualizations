@@ -78,9 +78,7 @@ void rplidar_print_scan_info(rplidar_response_measurement_node_hq_t* buffer, siz
 	std::cout << "- "
 		<< "count: " << count
 		<< ", zeros: " << zero_quality << " (" << zero_quality * 100 / count << "%)"
-		<< ", avg. quality: " << avg_quality
-		<< ", min: " << min_dist << "mm"
-		<< ", max: " << max_dist << "mm" << std::endl;
+		<< ", avg. quality: " << avg_quality << std::endl;
 }
 
 bool rplidar_launch(rplidar::RPlidarDriver* lidar, const char* port, _u32 baudrate) {
@@ -115,6 +113,7 @@ bool rplidar_scan(rplidar::RPlidarDriver* lidar, rplidar_response_measurement_no
 		std::cout << "ERROR: Unable to read scanning data." << std::endl;
 		return false;
 	}
+	lidar->ascendScanData(buffer, count);
 	if (verbose) rplidar_print_scan_info(buffer, count);
 	return true;
 }
