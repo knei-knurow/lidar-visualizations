@@ -126,7 +126,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 			  float f_distance = ((float)distance) / 4.0; //Q2->float
 
 
-			  if(f_angle > 0.0 && f_angle < 360.0 && cnt < POINTS)
+			  if(f_angle > 0.0 && f_angle < 360.0  && cnt < POINTS)
 			  {
 				  //Add received data to the arrays
 				  angles[cnt] = f_angle;
@@ -141,6 +141,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 				  cnt++;
 			  }
 		  }
+
 	 }
 }
 /* USER CODE END PFP */
@@ -231,7 +232,7 @@ int main(void)
 
  	//TODO: CHANGE FOR CORRECT 2-BYTE CHECK
  	//Gets one byte from UART until 0x5A packet. 0xA55A is start signal
- 	while(fakerecv != 0x5A)
+ 	while(fakerecv != 0x5a)
  	{
  		__HAL_UART_CLEAR_IT(&huart6, UART_CLEAR_NEF|UART_CLEAR_OREF);  //Clear UART cache
  		HAL_UART_Receive_DMA(&huart6, &fakerecv, 1); 	//Reveiving a byte will generate interrupt
@@ -245,23 +246,32 @@ int main(void)
  	//receive 5 byte packets !!CONTINUOUSLY!!
  	HAL_UART_Receive_DMA(&huart6, packet, 5);
 
+ 	uint8_t k = 1;
+
  	while(1)
  	{
+
+ 		k^=1;
+
  		//Wait for data to be gathered..
  		while(cnt < POINTS);
 
  			//TODO: FIX FLICKERING, SET UP TWO-LAYER DISPLAY MODE
- 			//BSP_LCD_SetLayerVisible(1, ENABLE);
-			//BSP_LCD_SetLayerVisible(0, DISABLE);
+ 			BSP_LCD_SetLayerVisible((k^1), ENABLE);
+ 			HAL_Delay(3);
+ 			BSP_LCD_SetLayerVisible((k), DISABLE);
 
 
-			BSP_LCD_SelectLayer(0);
-			BSP_LCD_Clear(0);
-			draw_grid(mat, COLOR_GRID);
-			draw_point(mat, ORIGIN_X, ORIGIN_Y, color(255, 255, 255), 1.0);
+
+
+
+			BSP_LCD_SelectLayer(k);
+			BSP_LCD_Clear(k);
+			draw_grid(COLOR_GRID);
+			draw_point(ORIGIN_X, ORIGIN_Y, color(255, 255, 255), 1.0);
 			lockArrays = true;
-			draw_connected_cloud_fromArray(mat, angles, distances, cnt, amin, dmin, amax, dmax, 0, 0, 1.0, true);
-			//draw_cloud_bars_fromArrays(mat, angles, distances, cnt, dmax);
+			draw_connected_cloud_fromArray(angles, distances, cnt, amin, dmin, amax, dmax, 0, 0, 1.0, true);
+			//draw_cloud_bars_fromArrays(angles, distances, cnt, dmax);
 			cnt = 0;
 			amax = 0;
 			amin = 0;
@@ -271,7 +281,7 @@ int main(void)
 
 
 			//(Copy layer 0 to layer 1)
-			//HAL_DMA_Start_IT(&hdma_memtomem_dma2_stream0, mat, mat2, 480*272*4);
+			//HAL_DMA_Start_IT(&hdma_memtomem_dma2_stream0, LCD_FB_START_ADDRESS, LCD_FB_START_ADDRESS+1024*1024*4, 480*272*4);
 			//BSP_LCD_SetLayerVisible(0, ENABLE);
 			//BSP_LCD_SetLayerVisible(1, DISABLE);
 

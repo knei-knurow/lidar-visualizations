@@ -33,29 +33,29 @@ const uint32_t COLOR_CLOUD2 = 0xff00ffc8;			//color(0, 255, 200);
 
 uint32_t color(uint8_t r, uint8_t g, uint8_t b);
 
-void draw_connected_cloud_fromArray(uint8_t* mat, float* angles, float* distances, int size, float amin, float dmin, float amax, float dmax, float scale,  int y_offset, float lightness, bool marks);
+void draw_connected_cloud_fromArray(float* angles, float* distances, int size, float amin, float dmin, float amax, float dmax, float scale,  int y_offset, float lightness, bool marks);
 
 float pt_getX(float phi, float dist,  float k);
 
 float pt_getY(float phi, float dist, float k);
 
-void draw_mark(uint8_t* mat, unsigned x, unsigned y, unsigned a, unsigned b, uint32_t c);
+void draw_mark( unsigned x, unsigned y, unsigned a, unsigned b, uint32_t c);
 
-void draw_pixel(uint8_t* mat, unsigned x, unsigned y, uint32_t c);
+void draw_pixel( unsigned x, unsigned y, uint32_t c);
 
-void draw_point(uint8_t* mat, unsigned x, unsigned y, uint32_t c, float lightness = 1.0);
-void draw_point(uint8_t* mat, unsigned x, unsigned y, float lightness = 1.0);
+void draw_point( unsigned x, unsigned y, uint32_t c, float lightness = 1.0);
+void draw_point( unsigned x, unsigned y, float lightness = 1.0);
 
-void draw_line(uint8_t* mat, float x0, float y0, float x1, float y1, uint32_t c);
-void draw_ray(uint8_t* mat, float x0, float y0, float x1, float y1, const uint32_t color);
+void draw_line( float x0, float y0, float x1, float y1, uint32_t c);
+void draw_ray( float x0, float y0, float x1, float y1, const uint32_t color);
 
-void draw_background(uint8_t* mat, uint32_t c);
+void draw_background( uint32_t c);
 
-void draw_grid(uint8_t* mat, uint32_t c);
+void draw_grid( uint32_t c);
 
 
 
-void draw_cloud_bars_fromArrays(uint8_t* mat, float * angles, float * distances, int size, float max);
+void draw_cloud_bars_fromArrays( float * angles, float * distances, int size, float max);
 
 uint32_t calc_color(float v, float lightness = 1.0);
 

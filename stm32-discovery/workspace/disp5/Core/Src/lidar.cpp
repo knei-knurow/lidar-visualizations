@@ -23,7 +23,7 @@ uint32_t color(uint8_t r, uint8_t g, uint8_t b)
 
 
 
-void draw_connected_cloud_fromArray(uint8_t* mat, float* angles, float* distances,  int size, float amin, float dmin, float amax, float dmax, float scale,  int y_offset, float lightness, bool marks) {
+void draw_connected_cloud_fromArray(float* angles, float* distances,  int size, float amin, float dmin, float amax, float dmax, float scale,  int y_offset, float lightness, bool marks) {
 
 
 	if (size == 0)
@@ -52,21 +52,25 @@ void draw_connected_cloud_fromArray(uint8_t* mat, float* angles, float* distance
 	}
 	for (int i = 1; i < size; i++) {
 		//auto pt = cyl_to_cart(cloud.pts[i], scale);
-		float pt_x = pt_getX(angles[i], distances[i], scale);
-		float pt_y = pt_getY(angles[i], distances[i], scale);
 
-		uint32_t c = color(255,255,255);//calc_color(float(cnt) / float(size), lightness);
+		if(distances[i] > 0)
+		{
+			float pt_x = pt_getX(angles[i], distances[i], scale);
+			float pt_y = pt_getY(angles[i], distances[i], scale);
 
-		if (distances[i] > 0 && distances[i-1] > 0)
-			draw_line(mat, float(last_pt_x), float(last_pt_y + y_offset), float(pt_x), float(pt_y) + y_offset, c);
+			uint32_t c = calc_color(float(distances[i]) / float(dmax), lightness);
 
-		last_pt_x = pt_x;
-		last_pt_y = pt_y;
-		cnt++;
+			if (distances[i] > 0 && distances[i-1] > 0)
+				draw_line(float(last_pt_x), float(last_pt_y + y_offset), float(pt_x), float(pt_y) + y_offset, c);
+
+			last_pt_x = pt_x;
+			last_pt_y = pt_y;
+			cnt++;
+		}
 	}
 
 	uint32_t c = color(255, 255, 255);//calc_color(float(cnt) / float(size), lightness);
-	draw_line(mat, float(last_pt_x), float(last_pt_y+ y_offset), float(first_pt_x), float(first_pt_y + y_offset), c);
+	draw_line(float(last_pt_x), float(last_pt_y+ y_offset), float(first_pt_x), float(first_pt_y + y_offset), c);
 
 	if (marks) {
 
@@ -78,11 +82,11 @@ void draw_connected_cloud_fromArray(uint8_t* mat, float* angles, float* distance
 
 			//auto pt = cyl_to_cart(cloud.pts[i], scale);
 
-			draw_point(mat, pt_max_x, pt_max_y + y_offset, color(255, 255, 255));
-			draw_mark(mat, pt_max_x, pt_max_y+ y_offset, unsigned(dmax / 1000), unsigned(dmax) % 1000, color(255, 255, 255));
+			draw_point( pt_max_x, pt_max_y + y_offset, color(255, 255, 255));
+			draw_mark(  pt_max_x, pt_max_y+ y_offset, unsigned(dmax / 1000), unsigned(dmax) % 1000, color(255, 255, 255));
 
-			draw_point(mat, pt_min_x, pt_min_y + y_offset, color(255, 255, 255));
-			draw_mark(mat, pt_min_x, pt_min_y+ y_offset, unsigned(dmin / 1000), unsigned(dmin) % 1000, color(255, 255, 255));
+			draw_point(  pt_min_x, pt_min_y + y_offset, color(255, 255, 255));
+			draw_mark(  pt_min_x, pt_min_y+ y_offset, unsigned(dmin / 1000), unsigned(dmin) % 1000, color(255, 255, 255));
 
 	}
 }
@@ -102,8 +106,8 @@ return round(dist * std::cos(phi * (acos(-1) / 180.0)) * k) + ORIGIN_Y;
 
 
 
-void draw_mark(uint8_t* mat, unsigned x, unsigned y, unsigned a, unsigned b, uint32_t color) {
-	draw_point(mat, x, y, color);
+void draw_mark(unsigned x, unsigned y, unsigned a, unsigned b, uint32_t color) {
+	draw_point(  x, y, color);
 	auto str = std::to_string(a) + "." + std::to_string(b);
 	x += -12;
 	y += 5;
@@ -114,7 +118,7 @@ void draw_mark(uint8_t* mat, unsigned x, unsigned y, unsigned a, unsigned b, uin
 		for (uint32_t cy = 0; cy < CHAR_HEIGHT; cy++) {
 			for (uint32_t cx = 0; cx < CHAR_MAT[ch][cy].size(); cx++) {
 				if (CHAR_MAT[ch][cy][cx] == '#')
-					draw_pixel(mat, x + cx, y + cy, color);
+					draw_pixel(  x + cx, y + cy, color);
 			}
 		}
 		x += CHAR_MAT[ch][0].size() + 1;
@@ -154,7 +158,7 @@ void load_cloud_fromString(std::string& string, Cloud& cloud, int k, float scale
 
 
 
-void draw_pixel(uint8_t* mat, unsigned x, unsigned y,  uint32_t c)
+void draw_pixel(unsigned x, unsigned y,  uint32_t c)
 {
 
 	if(x <= WIDTH && y <= HEIGHT)
@@ -163,7 +167,7 @@ void draw_pixel(uint8_t* mat, unsigned x, unsigned y,  uint32_t c)
 	}
 }
 
-void draw_point(uint8_t* mat, unsigned x, unsigned y, uint32_t c, float lightness) {
+void draw_point(unsigned x, unsigned y, uint32_t c, float lightness) {
 
 	uint8_t r = (c << 8) >> 24;
 	uint8_t g = (c << 16)>> 24;
@@ -175,57 +179,60 @@ void draw_point(uint8_t* mat, unsigned x, unsigned y, uint32_t c, float lightnes
 
 	c = color(r, g, b);
 
+	//BSP_LCD_SetTextColor(c);
+	//BSP_LCD_FillRect(x-1, y-1, 3, 3);
+
 	for (auto cx : { -1, 0, 1 }) {
 		for (auto cy : { -1, 0, 1 }) {
-				draw_pixel(mat, x + cx, y + cy, c);
+				draw_pixel(x + cx, y + cy, c);
 
 		}
 	}
 }
 
-void draw_point(uint8_t* mat, unsigned x, unsigned y, float lightness) {
+void draw_point(unsigned x, unsigned y, float lightness) {
 	uint32_t c = calc_color(x, y);
-	draw_point(mat, x, y, c, lightness);
+	draw_point(x, y, c, lightness);
 }
 
-void draw_line(uint8_t* mat, float x0, float y0, float x1, float y1, uint32_t c) {
+void draw_line(float x0, float y0, float x1, float y1, uint32_t c) {
 	float x = x1 - x0, y = y1 - y0;
 	const float max = MAX(fabs(x), fabs(y));
 	x /= max; y /= max;
 	for (float n = 0; n < max; n++) {
-		draw_point(mat, x0, y0, c);
+		draw_point(x0, y0, c);
 		x0 += x; y0 += y;
 	}
 }
 
-void draw_ray(uint8_t* mat, float x0, float y0, float x1, float y1, uint32_t c) {
+void draw_ray(float x0, float y0, float x1, float y1, uint32_t c) {
 	float x = x1 - x0, y = y1 - y0;
 	const float max = std::max(std::fabs(x), std::fabs(y));
 	x /= max; y /= max;
 	while (x0 < WIDTH && x0 >= 0 && y0 < HEIGHT && y0 >= 0) {
-		draw_point(mat, x0, y0, c);
+		draw_point(x0, y0, c);
 		x0 += x; y0 += y;
 	}
 }
 
 
 
-void draw_grid(uint8_t* mat, uint32_t c) {
+void draw_grid(uint32_t c) {
 	for (int x = 0; x < WIDTH; x += WIDTH / 8) {
 		for (int y = 0; y < HEIGHT; y++) {
-			draw_pixel(mat, x, y, c);
+			draw_pixel(x, y, c);
 		}
 	}
 	for (int y = 0; y < HEIGHT; y += HEIGHT / 8) {
 		for (int x = 0; x < WIDTH; x++) {
-			draw_pixel(mat, x, y, c);
+			draw_pixel(x, y, c);
 		}
 	}
 }
 
 
 
-void draw_cloud_bars_fromArrays(uint8_t* mat, float * angles, float * distances, int size, float max) {
+void draw_cloud_bars_fromArrays(float * angles, float * distances, int size, float max) {
 	unsigned max_width = 80;
 	for (int j = 0; j < HEIGHT; j++) {
 		float dist = distances[size_t(j * size / HEIGHT)];
@@ -233,7 +240,7 @@ void draw_cloud_bars_fromArrays(uint8_t* mat, float * angles, float * distances,
 		unsigned width = unsigned(std::round(dist / max * max_width));
 
 		for (uint32_t i = 0; i < width; i++) {
-			draw_pixel(mat, i, j, calc_color(float(j * size / HEIGHT) / float(size)));
+			draw_pixel(i, j, calc_color(float(j * size / HEIGHT) / float(size)));
 		}
 	}
 }
@@ -263,7 +270,7 @@ uint32_t calc_color(float v, float lightness)
 		g1 *=  1.0 - v / 0.34f;
 		b1 *=  1.0 - v / 0.34f;
 
-		return color((r + r1) * lightness, (g + g1) * lightness, (b + b+b1) * lightness);
+		return color((r + r1) * lightness, (g + g1) * lightness, (b +b1) * lightness);
 	}
 	else if (v <= 0.66f)
 	{
@@ -287,8 +294,8 @@ uint32_t calc_color(float v, float lightness)
 		r1 *=  1.0 - v / 0.34f;
 		g1 *=  1.0 - v / 0.34f;
 		b1 *=  1.0 - v / 0.34f;
-
-		return color((r + r1) * lightness, (g + g1) * lightness, (b + b+b1) * lightness);
+		//return color(255 * lightness, 255 * lightness, 255 * lightness);
+		return color((r + r1) * lightness, (g + g1) * lightness, (b +b1) * lightness);
 	}
 	else if (v <= 1.0f)
 	{
@@ -314,7 +321,8 @@ uint32_t calc_color(float v, float lightness)
 		g1 *=  1.0 - v / 0.34f;
 		b1 *=  1.0 - v / 0.34f;
 
-		return color((r + r1) * lightness, (g + g1) * lightness, (b + b+b1) * lightness);
+
+		return color((r + r1) * lightness, (g + g1) * lightness, (b +b1) * lightness);
 	}
 	else
 	{
