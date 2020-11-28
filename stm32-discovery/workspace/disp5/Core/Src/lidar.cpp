@@ -60,8 +60,9 @@ void draw_connected_cloud_fromArray(float* angles, float* distances,  int size, 
 
 			uint32_t c = calc_color(float(distances[i]) / float(dmax), lightness);
 
-			if (distances[i] > 0 && distances[i-1] > 0)
+			//if (distances[i] > 0 && distances[i-1] > 0)
 				draw_line(float(last_pt_x), float(last_pt_y + y_offset), float(pt_x), float(pt_y) + y_offset, c);
+
 
 			last_pt_x = pt_x;
 			last_pt_y = pt_y;
