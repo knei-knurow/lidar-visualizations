@@ -80,7 +80,7 @@ uint32_t cnt = 0;
 float amax = 0;
 float dmax = 0;
 float amin = 0;
-float dmin = 0;
+float dmin = 1000.0;
 
 float angles[POINTS] = {0.0};
 float distances[POINTS] = {0.0};
@@ -116,15 +116,12 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	 HAL_UART_Receive_DMA(&huart6, packet, 5);
 		 if(!lockArrays)
 		 {
-
 			  //Transforming received data
 			  uint16_t quality = packet[0] >> 2;
 			  uint16_t angle = ((uint16_t)packet[1] >> 1) | (((uint16_t)packet[2]) << 7);
 			  float f_angle = ((float) angle) / 64.0; //Q6->float
-
 			  uint16_t distance = ((uint16_t) packet[3]) | ((uint16_t)packet[4] << 8);
 			  float f_distance = ((float)distance) / 4.0; //Q2->float
-
 
 			  if(f_angle > 0.0 && f_angle < 360.0  && cnt < POINTS)
 			  {
@@ -137,6 +134,12 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 				  {
 					  dmax = f_distance;
 					  amax = f_angle;
+				  }
+
+				  if(f_distance < dmin && f_distance > 0.0f)
+				  {
+					  dmin = f_distance;
+					  amin = f_angle;
 				  }
 				  cnt++;
 			  }
