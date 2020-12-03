@@ -12,7 +12,6 @@
 #include "lidar.h"
 #include "communication.h"
 
-#ifdef WINDOWED_APP
 int main(int argc, char** argv) {
 	using namespace rp::standalone;
 	bool running = true;
@@ -155,9 +154,3 @@ int main(int argc, char** argv) {
 	delete[] buffer;
 	return 0;
 }
-#else
-int main(int argc, char** argv) {
-	
-	return 0;
-}
-#endif // WINDOWED_APP

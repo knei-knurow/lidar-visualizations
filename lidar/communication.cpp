@@ -3,8 +3,6 @@
 #include <string>
 #include "communication.h"
 
-#ifdef WINDOWED_APP
-
 bool rplidar_print_info(rplidar::RPlidarDriver* lidar) {
 	rplidar_response_device_info_t lidar_info;
 	auto res = lidar->getDeviceInfo(lidar_info);
@@ -128,5 +126,3 @@ void rplidar_stop(rplidar::RPlidarDriver* lidar) {
 	lidar->disconnect();
 	rplidar::RPlidarDriver::DisposeDriver(lidar);
 }
-
-#endif

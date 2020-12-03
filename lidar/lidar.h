@@ -13,14 +13,8 @@
 #include <SFML\Graphics.hpp>
 #include <rplidar.h>
 
-#ifdef WINDOWED_APP
 const int WIDTH = 1280;
 const int HEIGHT = 720;
-#else
-const int WIDTH = 480;
-const int HEIGHT = 272;
-#endif // WINDOWED_APP
-
 const int CHANNELS = 4;
 const int ORIGIN_X = WIDTH / 2 - 160;
 const int ORIGIN_Y = HEIGHT / 2 - 90;
@@ -33,14 +27,6 @@ const color COLOR_GRID = color(36, 36, 48);
 const color COLOR_CLOUD0 = color(0, 255, 255);
 const color COLOR_CLOUD1 = color(255, 0, 255);
 const color COLOR_CLOUD2 = color(255, 255, 0);
-
-struct Color {
-	uint8_t r;
-	uint8_t g;
-	uint8_t b;
-
-	Color(uint8_t r, uint8_t g, uint8_t b);
-};
 
 struct Cloud {
 	std::vector<std::pair<float, float>> pts;
