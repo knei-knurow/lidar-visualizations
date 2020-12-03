@@ -24,7 +24,7 @@ int main(int argc, char** argv) {
 	
 	if (argc <= 1) {
 		lidar = rplidar::RPlidarDriver::CreateDriver();
-		if (rplidar_launch(lidar)) {
+		if (!rplidar_launch(lidar)) {
 			running = false;
 		}
 	}
@@ -43,6 +43,7 @@ int main(int argc, char** argv) {
 		std::cout << "\tport\tRPLidar port" << std::endl;
 		std::cout << std::endl;
 		std::cout << "GUI Mode Keyboard Shortcuts:" << std::endl;
+		std::cout << "\tT\tsave point cloud as TXT" << std::endl;
 		std::cout << "\tS\tsave screenshot" << std::endl;
 		std::cout << "\tA/D\trotate cloud (faster with shift, slower with ctrl)" << std::endl;
 		std::cout << "\tP\trotation on/off" << std::endl;
@@ -59,7 +60,7 @@ int main(int argc, char** argv) {
 		}
 		else if (std::strcmp(argv[1], "port") == 0) {
 			lidar = rplidar::RPlidarDriver::CreateDriver();
-			if (rplidar_launch(lidar, argv[2])) {
+			if (!rplidar_launch(lidar, argv[2])) {
 				running = false;
 			}
 		}
@@ -123,6 +124,7 @@ int main(int argc, char** argv) {
 				}
 			}
 		}
+
 
 		if (lidar) {
 			size_t count;

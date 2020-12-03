@@ -14,16 +14,16 @@
 #include <rplidar.h>
 
 #ifdef WINDOWED_APP
-const int WIDTH = 1920;
-const int HEIGHT = 1080;
+const int WIDTH = 1280;
+const int HEIGHT = 720;
 #else
 const int WIDTH = 480;
 const int HEIGHT = 272;
 #endif // WINDOWED_APP
 
 const int CHANNELS = 4;
-const int ORIGIN_X = WIDTH / 2;
-const int ORIGIN_Y = HEIGHT / 2;
+const int ORIGIN_X = WIDTH / 2 - 160;
+const int ORIGIN_Y = HEIGHT / 2 - 90;
 
 typedef sf::Color color;
 

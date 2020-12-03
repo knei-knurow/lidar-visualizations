@@ -104,6 +104,7 @@ bool rplidar_launch(rplidar::RPlidarDriver* lidar, const char* port, _u32 baudra
 		return false;
 	}
 	lidar->startScanExpress(false, scan_mode);
+	return true;
 }
 
 bool rplidar_scan(rplidar::RPlidarDriver* lidar, rplidar_response_measurement_node_hq_t* buffer, size_t & count, bool verbose) {

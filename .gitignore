@@ -4,4 +4,5 @@ Debug
 Release
 *.user
 *.xcf
-rplidar-sdk/
+rplidar-sdk
+rplidar_sdk
