@@ -57,9 +57,8 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define POINTS 1800
+#define POINTS 200
 #define PACKET_SIZE 5
-#define BLOCK_SIZE 132
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -71,12 +70,10 @@
 
 /* USER CODE BEGIN PV */
 
-volatile bool received_flag = false;
+
 volatile bool parseData = false;
 volatile bool lockArrays = false;
 uint8_t packet[PACKET_SIZE] = {0};
-uint8_t buff[3*BLOCK_SIZE] = {0};
-
 uint32_t cnt = 0;
 
 
@@ -93,7 +90,6 @@ uint8_t fakerecv = 0;
 //#### LIDAR COMMANDS ####
 uint8_t reset[] = {0xA5, 0x40};
 uint8_t startscan[] = {0xA5, 0x20};
-uint8_t startscan_extended[] = {0xA5, 0x82, 0x05, 0x02, 0x00, 0x00, 0x00, 0x00, 0x5d};
 
 //UNUSED BUT USEFUL!
 uint8_t get_salmplerate[] = {0xA5, 0x59};
@@ -109,212 +105,156 @@ void SystemClock_Config(void);
 void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN PFP */
 
+typedef struct _rplidar_response_ultra_cabin_nodes_t {
+    // 31                                              0
+    // | predict2 10bit | predict1 10bit | major 12bit |
+    uint32_t combined_x3;
+} __attribute__((packed)) rplidar_response_ultra_cabin_nodes_t;
+typedef struct _rplidar_response_ultra_capsule_measurement_nodes_t {
+    uint8_t                             s_checksum_1; // see [s_checksum_1]
+    uint8_t                             s_checksum_2; // see [s_checksum_1]
+    uint16_t                            start_angle_sync_q6;
+    rplidar_response_ultra_cabin_nodes_t  ultra_cabins[32];
+} __attribute__((packed)) rplidar_response_ultra_capsule_measurement_nodes_t;
 
-#define ULTRA_CABINS_IN_RESPONSE 32
-#define CABIN_SIZE 4
-#define ANGLE_OFFSET_14_8 3
-#define ANGLE_OFFSET_07_0 2
-#define ULTRA_CABIN_0_OFFSET 4
-#define RPLIDAR_VARBITSCALE_X2_SRC_BIT  9
-#define RPLIDAR_VARBITSCALE_X4_SRC_BIT  11
-#define RPLIDAR_VARBITSCALE_X8_SRC_BIT  12
-#define RPLIDAR_VARBITSCALE_X16_SRC_BIT 14
+typedef struct rplidar_response_measurement_node_hq_t {
+    uint16_t   angle_z_q14;
+    uint32_t   dist_mm_q2;
+    uint8_t    quality;
+    uint8_t    flag;
+} __attribute__((packed)) rplidar_response_measurement_node_hq_t;
 
-#define RPLIDAR_VARBITSCALE_X2_DEST_VAL 512
-#define RPLIDAR_VARBITSCALE_X4_DEST_VAL 1280
-#define RPLIDAR_VARBITSCALE_X8_DEST_VAL 1792
-#define RPLIDAR_VARBITSCALE_X16_DEST_VAL 3328
-#define RPLIDAR_RESP_MEASUREMENT_QUALITY_SHIFT  2
+typedef struct _rplidar_response_hq_capsule_measurement_nodes_t{
+    uint8_t sync_byte;
+    uint64_t time_stamp;
+    rplidar_response_measurement_node_hq_t node_hq[16];
+    uint32_t  crc32;
+}__attribute__((packed)) rplidar_response_hq_capsule_measurement_nodes_t;
 
 
-#define RPLIDAR_VARBITSCALE_GET_SRC_MAX_VAL_BY_BITS(_BITS_) \
-    (  (((0x1<<(_BITS_)) - RPLIDAR_VARBITSCALE_X16_DEST_VAL)<<4) + \
-       ((RPLIDAR_VARBITSCALE_X16_DEST_VAL - RPLIDAR_VARBITSCALE_X8_DEST_VAL)<<3) + \
-       ((RPLIDAR_VARBITSCALE_X8_DEST_VAL - RPLIDAR_VARBITSCALE_X4_DEST_VAL)<<2) + \
-       ((RPLIDAR_VARBITSCALE_X4_DEST_VAL - RPLIDAR_VARBITSCALE_X2_DEST_VAL)<<1) + \
-       RPLIDAR_VARBITSCALE_X2_DEST_VAL - 1)
-
-static uint32_t _varbitscale_decode(uint32_t scaled, uint32_t & scaleLevel)
+void _ultraCapsuleToNormal(const rplidar_response_ultra_capsule_measurement_nodes_t & capsule, rplidar_response_measurement_node_hq_t *nodebuffer, size_t &nodeCount)
 {
-    static const uint32_t VBS_SCALED_BASE[] = {
-        RPLIDAR_VARBITSCALE_X16_DEST_VAL,
-        RPLIDAR_VARBITSCALE_X8_DEST_VAL,
-        RPLIDAR_VARBITSCALE_X4_DEST_VAL,
-        RPLIDAR_VARBITSCALE_X2_DEST_VAL,
-        0,
-    };
+    nodeCount = 0;
+    if (_is_previous_capsuledataRdy) {
+        int diffAngle_q8;
+        int currentStartAngle_q8 = ((capsule.start_angle_sync_q6 & 0x7FFF) << 2);
+        int prevStartAngle_q8 = ((_cached_previous_ultracapsuledata.start_angle_sync_q6 & 0x7FFF) << 2);
 
-    static const uint32_t VBS_SCALED_LVL[] = {
-        4,
-        3,
-        2,
-        1,
-        0,
-    };
+        diffAngle_q8 = (currentStartAngle_q8)-(prevStartAngle_q8);
+        if (prevStartAngle_q8 >  currentStartAngle_q8) {
+            diffAngle_q8 += (360 << 8);
+        }
 
-    static const uint32_t VBS_TARGET_BASE[] = {
-        (0x1 << RPLIDAR_VARBITSCALE_X16_SRC_BIT),
-        (0x1 << RPLIDAR_VARBITSCALE_X8_SRC_BIT),
-        (0x1 << RPLIDAR_VARBITSCALE_X4_SRC_BIT),
-        (0x1 << RPLIDAR_VARBITSCALE_X2_SRC_BIT),
-        0,
-    };
+        int angleInc_q16 = (diffAngle_q8 << 3) / 3;
+        int currentAngle_raw_q16 = (prevStartAngle_q8 << 8);
+        for (size_t pos = 0; pos < _countof(_cached_previous_ultracapsuledata.ultra_cabins); ++pos)
+        {
+            int dist_q2[3];
+            int angle_q6[3];
+            int syncBit[3];
 
-    for (size_t i = 0; i < 5; ++i)
-    {
-        int remain = ((int)scaled - (int)VBS_SCALED_BASE[i]);
-        if (remain >= 0) {
-            scaleLevel = VBS_SCALED_LVL[i];
-            return VBS_TARGET_BASE[i] + (remain << scaleLevel);
+
+            uint32_t combined_x3 = _cached_previous_ultracapsuledata.ultra_cabins[pos].combined_x3;
+
+            // unpack ...
+            int dist_major = (combined_x3 & 0xFFF);
+
+            // signed partical integer, using the magic shift here
+            // DO NOT TOUCH
+
+            int dist_predict1 = (((int)(combined_x3 << 10)) >> 22);
+            int dist_predict2 = (((int)combined_x3) >> 22);
+
+            int dist_major2;
+
+            uint32_t scalelvl1, scalelvl2;
+
+            // prefetch next ...
+            if (pos == _countof(_cached_previous_ultracapsuledata.ultra_cabins) - 1)
+            {
+                dist_major2 = (capsule.ultra_cabins[0].combined_x3 & 0xFFF);
+            }
+            else {
+                dist_major2 = (_cached_previous_ultracapsuledata.ultra_cabins[pos + 1].combined_x3 & 0xFFF);
+            }
+
+            // decode with the var bit scale ...
+            dist_major = _varbitscale_decode(dist_major, scalelvl1);
+            dist_major2 = _varbitscale_decode(dist_major2, scalelvl2);
+
+
+            int dist_base1 = dist_major;
+            int dist_base2 = dist_major2;
+
+            if ((!dist_major) && dist_major2) {
+                dist_base1 = dist_major2;
+                scalelvl1 = scalelvl2;
+            }
+
+
+            dist_q2[0] = (dist_major << 2);
+            if ((dist_predict1 == 0xFFFFFE00) || (dist_predict1 == 0x1FF)) {
+                dist_q2[1] = 0;
+            } else {
+                dist_predict1 = (dist_predict1 << scalelvl1);
+                dist_q2[1] = (dist_predict1 + dist_base1) << 2;
+
+            }
+
+            if ((dist_predict2 == 0xFFFFFE00) || (dist_predict2 == 0x1FF)) {
+                dist_q2[2] = 0;
+            } else {
+                dist_predict2 = (dist_predict2 << scalelvl2);
+                dist_q2[2] = (dist_predict2 + dist_base2) << 2;
+            }
+
+
+            for (int cpos = 0; cpos < 3; ++cpos)
+            {
+
+                syncBit[cpos] = (((currentAngle_raw_q16 + angleInc_q16) % (360 << 16)) < angleInc_q16) ? 1 : 0;
+
+                int offsetAngleMean_q16 = (int)(7.5 * 3.1415926535 * (1 << 16) / 180.0);
+
+                if (dist_q2[cpos] >= (50 * 4))
+                {
+                    const int k1 = 98361;
+                    const int k2 = int(k1 / dist_q2[cpos]);
+
+                    offsetAngleMean_q16 = (int)(8 * 3.1415926535 * (1 << 16) / 180) - (k2 << 6) - (k2 * k2 * k2) / 98304;
+                }
+
+                angle_q6[cpos] = ((currentAngle_raw_q16 - int(offsetAngleMean_q16 * 180 / 3.14159265)) >> 10);
+                currentAngle_raw_q16 += angleInc_q16;
+
+                if (angle_q6[cpos] < 0) angle_q6[cpos] += (360 << 6);
+                if (angle_q6[cpos] >= (360 << 6)) angle_q6[cpos] -= (360 << 6);
+
+                rplidar_response_measurement_node_hq_t node;
+
+                node.flag = (syncBit[cpos] | ((!syncBit[cpos]) << 1));
+                node.quality = dist_q2[cpos] ? (0x2F << RPLIDAR_RESP_MEASUREMENT_QUALITY_SHIFT) : 0;
+                node.angle_z_q14 = uint16_t((angle_q6[cpos] << 😎 / 90);
+                node.dist_mm_q2 = dist_q2[cpos];
+
+                nodebuffer[nodeCount++] = node;
+            }
+
         }
     }
-    return 0;
+
+    _cached_previous_ultracapsuledata = capsule;
+    _is_previous_capsuledataRdy = true;
 }
 
 
 //DMA data-packet interrupt
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-
-	static uint8_t k = 0;
-	static uint8_t last_k = 2;
-	static uint8_t next_k = 1;
-
-
-
-	if(parseData)
-	{
-
-
-		HAL_UART_Receive_DMA(&huart6, buff + next_k * BLOCK_SIZE, BLOCK_SIZE);
-
-		int current_start_angle_q8 = (((uint16_t)(*(buff + k * BLOCK_SIZE + ANGLE_OFFSET_14_8)) & 0x7f) << 10);
-		current_start_angle_q8 |= (*(buff + k * BLOCK_SIZE + ANGLE_OFFSET_07_0)) << 2;
-
-		int previous_start_angle_q8 = (((uint16_t)(*(buff + last_k * BLOCK_SIZE + ANGLE_OFFSET_14_8)) & 0x7f) << 10);
-		previous_start_angle_q8 |= (*(buff + last_k * BLOCK_SIZE + ANGLE_OFFSET_07_0)) << 2;
-
-
-		int start_angle_diff_q8 = current_start_angle_q8 - previous_start_angle_q8;
-		if(previous_start_angle_q8 > current_start_angle_q8) start_angle_diff_q8 += (360 << 8);
-		int angle_step_q16 = (start_angle_diff_q8 << 3) / 3;
-		int current_raw_angle_q16 = (previous_start_angle_q8 << 8);
-
-
-
-		if(previous_start_angle_q8 > 0)
-		{
-			for(uint8_t i = 0; i < ULTRA_CABINS_IN_RESPONSE ; i++)
-			{
-				int dist_q2[3];
-				int angle_q6[3];
-				int syncBit[3];
-
-				uint32_t combined = (*((uint32_t*)(buff + last_k * BLOCK_SIZE + ULTRA_CABIN_0_OFFSET + CABIN_SIZE * i)));
-
-				//'signed, do not touch'
-				int dist_major = (combined & 0xfff);
-
-				int dist_predict1 = (((int)(combined << 10)) >> 22);
-				int dist_predict2 = (((int)combined) >> 22);
-
-				int dist_major2;
-				uint32_t scale1;
-				uint32_t scale2;
-
-
-				//prefetch
-				if(i == ULTRA_CABINS_IN_RESPONSE - 1){
-					dist_major2 = (*((uint32_t*)(buff + k * BLOCK_SIZE + ULTRA_CABIN_0_OFFSET + CABIN_SIZE * 0))) & 0xfff;
-				}else{
-					dist_major2 = (*((uint32_t*)(buff + last_k * BLOCK_SIZE + ULTRA_CABIN_0_OFFSET + CABIN_SIZE * (i + 1)))) & 0xfff;
-				}
-
-				dist_major = _varbitscale_decode(dist_major, scale1);
-				dist_major2 = _varbitscale_decode(dist_major2, scale2);
-
-				int dist_base1 = dist_major;
-				int dist_base2 = dist_major2;
-
-				if((!dist_major) && dist_major2){
-					dist_base1 = dist_major2;
-					scale1 = scale2;
-				}
-
-				dist_q2[0] = (dist_major << 2);
-				if((dist_predict1 == 0xFFFFFE00) || (dist_predict1 == 0x1FF)){
-					dist_q2[1] = 0;
-				} else {
-					dist_predict1 = (dist_predict1 << scale1);
-					dist_q2[1] = (dist_predict1 + dist_base1) << 2;
-				}
-
-				if((dist_predict1 == 0xFFFFFE00) || (dist_predict2 == 0x1FF)){
-					dist_q2[2] = 0;
-				} else {
-					dist_predict2 =  (dist_predict2 << scale2);
-					dist_q2[2] = (dist_predict2 + dist_base2) << 2;
-				}
-
-
-				for(int j = 0; j < 3; j++){
-					syncBit[j] = (((current_raw_angle_q16 + angle_step_q16) % (360 << 16)) < angle_step_q16) ? 1 : 0;
-					int offset_angle_mean_q16 = (int)(7.5 * 3.1415926535 * (1<<16) / 180.0);
-
-					if(dist_q2[j] >= (50*4)){
-						const int k1 = 98361;
-						const int k2 = (int)(k1/dist_q2[j]);
-						offset_angle_mean_q16 = (int)((8 * 3.1415926535 * (1<<16) / 180) - (k2 << 6) - (k2 * k2 * k2) / 98304);
-					}
-
-					angle_q6[j] = ((current_raw_angle_q16 - int(offset_angle_mean_q16 * 180 / 3.14159265)) >> 10);
-					current_raw_angle_q16 += angle_step_q16;
-
-					if(angle_q6[j] < 0) angle_q6[j] += (360 << 6);
-					else if(angle_q6[j] >= (360 << 6)) angle_q6[j] -= (360 << 6);
-
-					float f_angle = ((float) angle_q6[j])/ 64.0f;
-					float f_distance = ((float) dist_q2[j]) / 4.0f;
-
-					uint16_t quality = dist_q2[j] ? (0x2f << RPLIDAR_RESP_MEASUREMENT_QUALITY_SHIFT) : 0;
-
-					if(f_angle >1.0 && f_angle < 360.0 && quality != 0  && cnt < POINTS && !lockArrays)
-					{
-					  //Add received data to the arrays
-					  angles[cnt] = f_angle;
-					  distances[cnt] = f_distance;
-
-					  //If this is the greatest distance, save it
-					  if(f_distance > dmax){
-						  dmax = f_distance;
-						  amax = f_angle;
-					  }
-					  else if(f_distance < dmin && f_distance > 0.0f){
-						  dmin = f_distance;
-						  amin = f_angle;
-					  }
-					  cnt++;
-					}
-				}
-
-			}
-		}
-		k++;
-		last_k++;
-		next_k++;
-		if(k >= 3) k = 0;
-		if(last_k >= 3) last_k = 0;
-		if(next_k >= 3) next_k = 0;
-
-	}
-
-	received_flag = true;
-
-
-}
-/*
- * //Set up listening for another 5 bytes...
-		HAL_UART_Receive_DMA(&huart6, packet, 5);
+ if(parseData)
+ {
+	 //Set up listening for another 5 bytes...
+	 HAL_UART_Receive_DMA(&huart6, packet, 5);
 		 if(!lockArrays)
 		 {
 			  //Transforming received data
@@ -347,9 +287,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 		  }
 
 	 }
- */
-
-
+}
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -416,6 +354,11 @@ int main(void)
    	//The PWM value is set to 50% duty cycle by default.
    	HAL_TIM_PWM_Start(&htim12, TIM_CHANNEL_1);
 
+   	//Two __IO arrays where display layer data is placed
+   	//1024x1024x4 as layers are placed in separate 4MB SDRAM sectors
+   	uint8_t* mat = (uint8_t* ) 0xC0000000;
+   	uint8_t* mat2= (uint8_t* ) 0xC0000000 + 1024 * 1024 * 4;
+
 
    	//DMA transmits 2-byte RESET command over UART6
     HAL_UART_Transmit_DMA(&huart6, reset, 2);
@@ -429,31 +372,23 @@ int main(void)
  	HAL_Delay(1000);
 
  	//Start-scan request
- 	//HAL_UART_Transmit_DMA(&huart6, startscan, 2);
+ 	HAL_UART_Transmit_DMA(&huart6, startscan, 2);
 
  	//TODO: CHANGE FOR CORRECT 2-BYTE CHECK
  	//Gets one byte from UART until 0x5A packet. 0xA55A is start signal
- 	//while(fakerecv != 0x5a)
- 	//{
- 	//	__HAL_UART_CLEAR_IT(&huart6, UART_CLEAR_NEF|UART_CLEAR_OREF);  //Clear UART cache
- 	//	HAL_UART_Receive_DMA(&huart6, &fakerecv, 1); 	//Reveiving a byte will generate interrupt
- 	//}
+ 	while(fakerecv != 0x5a)
+ 	{
+ 		__HAL_UART_CLEAR_IT(&huart6, UART_CLEAR_NEF|UART_CLEAR_OREF);  //Clear UART cache
+ 		HAL_UART_Receive_DMA(&huart6, &fakerecv, 1); 	//Reveiving a byte will generate interrupt
+ 	}
 
 
-
- 	startscan_extended[8] = 0x00 ^ 0xa5 ^ 0x82 ^ 0x05 ^ 0x02^ 0x00 ^ 0x00 ^ 0x00 ^ 0x00;
-
-
- 	HAL_UART_Transmit_DMA(&huart6, startscan_extended, 9);
- 	__HAL_UART_CLEAR_IT(&huart6, UART_CLEAR_NEF|UART_CLEAR_OREF);  //Clear UART cache
- 	HAL_UART_Receive_DMA(&huart6, buff, 8);
- 	while(!received_flag);
+ 	//The DMA controller will now parse the data packets received
+ 	//This flag also enables continuous receiving.
  	parseData = true;
 
-	//The DMA controller will now parse the data packets received
- 	//This flag also enables continuous receiving.
-
- 	HAL_UART_Receive_DMA(&huart6, buff, BLOCK_SIZE);
+ 	//receive 5 byte packets !!CONTINUOUSLY!!
+ 	HAL_UART_Receive_DMA(&huart6, packet, 5);
 
  	uint8_t k = 1;
 
