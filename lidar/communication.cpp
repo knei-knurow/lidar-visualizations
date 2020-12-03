@@ -40,7 +40,7 @@ bool rplidar_print_health(rplidar::RPlidarDriver* lidar, _u8* status) {
 	return true;
 }
 
-bool rplidar_print_scan_modes(rplidar::RPlidarDriver* lidar, _u16* scan_mode) {
+bool rplidar_print_scan_modes(rplidar::RPlidarDriver* lidar, _u16* scan_mode, _u16 preffered_mode_id) {
 	std::vector<rplidar::RplidarScanMode> scan_modes;
 	_u16 current_scan_mode;
 	auto res = lidar->getTypicalScanMode(current_scan_mode);
@@ -52,8 +52,13 @@ bool rplidar_print_scan_modes(rplidar::RPlidarDriver* lidar, _u16* scan_mode) {
 	std::cout << "Supported scan modes:" << std::endl;
 	for (const auto& scan_mode : scan_modes) {
 		std::cout << "  ";
-		std::cout << scan_mode.scan_mode
-			<< " (" << scan_mode.id << (scan_mode.id == current_scan_mode ? ", DEFAULT" : "") <<  "), "
+		std::cout << scan_mode.scan_mode << " (" << scan_mode.id; 
+		if (scan_mode.id == current_scan_mode) std::cout << ", DEFAULT";
+		if (preffered_mode_id == scan_mode.id) {
+			std::cout << ", SELECTED";
+			current_scan_mode = preffered_mode_id;
+		}
+		std::cout << "), "
 			<< "sample time: " << scan_mode.us_per_sample << "us, "
 			<< "max distance: " << scan_mode.max_distance << "m" << std::endl;
 	}
@@ -79,7 +84,7 @@ void rplidar_print_scan_info(rplidar_response_measurement_node_hq_t* buffer, siz
 		<< ", avg. quality: " << avg_quality << std::endl;
 }
 
-bool rplidar_launch(rplidar::RPlidarDriver* lidar, const char* port, _u32 baudrate) {
+bool rplidar_launch(rplidar::RPlidarDriver* lidar, const char* port, _u32 baudrate, _u16 preffered_mode_id) {
 	std::cout << "LIDAR connection:" << std::endl;
 	std::cout << "  Port: " << port << "" << std::endl;
 	std::cout << "  Baudrate: " << baudrate << "" << std::endl;
@@ -90,10 +95,10 @@ bool rplidar_launch(rplidar::RPlidarDriver* lidar, const char* port, _u32 baudra
 	}
 	std::cout << "Connection established." << std::endl;
 
-	_u16 scan_mode;
 	if (!rplidar_print_info(lidar)) return false;
 	if (!rplidar_print_health(lidar)) return false;
-	if (!rplidar_print_scan_modes(lidar, &scan_mode)) return false;
+	_u16 scan_mode;
+	if (!rplidar_print_scan_modes(lidar, &scan_mode, preffered_mode_id)) return false;
 
 	std::cout << "Statring motor." << std::endl;
 	res = lidar->startMotor();
