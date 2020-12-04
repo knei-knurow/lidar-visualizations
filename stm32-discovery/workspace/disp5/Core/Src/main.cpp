@@ -14,12 +14,12 @@
   * License. You may obtain a copy of the License at:
   *                        opensource.org/licenses/BSD-3-Clause
   *
-  ******************************************************************************
+  *
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "cmsis_os.h"
+
 #include "crc.h"
 #include "dma.h"
 #include "dma2d.h"
@@ -37,71 +37,29 @@
 
 #include "stm32746g_discovery.h"
 #include "stm32746g_discovery_lcd.h"
+#include "lidar_driver.h"
 #include "lidar.h"
-
-#include <string>
-#include <iostream>
-#include <fstream>
-#include <algorithm>
-#include <sstream>
-#include <vector>
-#include <cmath>
-#include <utility>
 
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define POINTS 1800
-#define PACKET_SIZE 5
-#define BLOCK_SIZE 132
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-
 /* USER CODE BEGIN PV */
-
 volatile bool received_flag = false;
 volatile bool parseData = false;
-volatile bool lockArrays = false;
-uint8_t packet[PACKET_SIZE] = {0};
 uint8_t buff[3*BLOCK_SIZE] = {0};
-
-uint32_t cnt = 0;
-
-
-float amax = 0;
-float dmax = 0;
-float amin = 0;
-float dmin = 1000.0;
-
-float angles[POINTS] = {0.0};
-float distances[POINTS] = {0.0};
-
-uint8_t fakerecv = 0;
-
-//#### LIDAR COMMANDS ####
-uint8_t reset[] = {0xA5, 0x40};
-uint8_t startscan[] = {0xA5, 0x20};
-uint8_t startscan_extended[] = {0xA5, 0x82, 0x05, 0x02, 0x00, 0x00, 0x00, 0x00, 0x5d};
-
-//UNUSED BUT USEFUL!
-uint8_t get_salmplerate[] = {0xA5, 0x59};
-uint8_t get_health[] = {0xA5, 0x52};
-uint8_t get_info[] = {0xA5, 0x50};
-uint8_t get_lidar_conf[] = {0xA5, 0x84};
-uint8_t stop_rq[] = {0xA5, 0x25};
-
+lidar_map map;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -109,91 +67,25 @@ void SystemClock_Config(void);
 void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN PFP */
 
-
-#define ULTRA_CABINS_IN_RESPONSE 32
-#define CABIN_SIZE 4
-#define ANGLE_OFFSET_14_8 3
-#define ANGLE_OFFSET_07_0 2
-#define ULTRA_CABIN_0_OFFSET 4
-#define RPLIDAR_VARBITSCALE_X2_SRC_BIT  9
-#define RPLIDAR_VARBITSCALE_X4_SRC_BIT  11
-#define RPLIDAR_VARBITSCALE_X8_SRC_BIT  12
-#define RPLIDAR_VARBITSCALE_X16_SRC_BIT 14
-
-#define RPLIDAR_VARBITSCALE_X2_DEST_VAL 512
-#define RPLIDAR_VARBITSCALE_X4_DEST_VAL 1280
-#define RPLIDAR_VARBITSCALE_X8_DEST_VAL 1792
-#define RPLIDAR_VARBITSCALE_X16_DEST_VAL 3328
-#define RPLIDAR_RESP_MEASUREMENT_QUALITY_SHIFT  2
-
-
-#define RPLIDAR_VARBITSCALE_GET_SRC_MAX_VAL_BY_BITS(_BITS_) \
-    (  (((0x1<<(_BITS_)) - RPLIDAR_VARBITSCALE_X16_DEST_VAL)<<4) + \
-       ((RPLIDAR_VARBITSCALE_X16_DEST_VAL - RPLIDAR_VARBITSCALE_X8_DEST_VAL)<<3) + \
-       ((RPLIDAR_VARBITSCALE_X8_DEST_VAL - RPLIDAR_VARBITSCALE_X4_DEST_VAL)<<2) + \
-       ((RPLIDAR_VARBITSCALE_X4_DEST_VAL - RPLIDAR_VARBITSCALE_X2_DEST_VAL)<<1) + \
-       RPLIDAR_VARBITSCALE_X2_DEST_VAL - 1)
-
-static uint32_t _varbitscale_decode(uint32_t scaled, uint32_t & scaleLevel)
-{
-    static const uint32_t VBS_SCALED_BASE[] = {
-        RPLIDAR_VARBITSCALE_X16_DEST_VAL,
-        RPLIDAR_VARBITSCALE_X8_DEST_VAL,
-        RPLIDAR_VARBITSCALE_X4_DEST_VAL,
-        RPLIDAR_VARBITSCALE_X2_DEST_VAL,
-        0,
-    };
-
-    static const uint32_t VBS_SCALED_LVL[] = {
-        4,
-        3,
-        2,
-        1,
-        0,
-    };
-
-    static const uint32_t VBS_TARGET_BASE[] = {
-        (0x1 << RPLIDAR_VARBITSCALE_X16_SRC_BIT),
-        (0x1 << RPLIDAR_VARBITSCALE_X8_SRC_BIT),
-        (0x1 << RPLIDAR_VARBITSCALE_X4_SRC_BIT),
-        (0x1 << RPLIDAR_VARBITSCALE_X2_SRC_BIT),
-        0,
-    };
-
-    for (size_t i = 0; i < 5; ++i)
-    {
-        int remain = ((int)scaled - (int)VBS_SCALED_BASE[i]);
-        if (remain >= 0) {
-            scaleLevel = VBS_SCALED_LVL[i];
-            return VBS_TARGET_BASE[i] + (remain << scaleLevel);
-        }
-    }
-    return 0;
-}
-
-
 //DMA data-packet interrupt
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 
 	static uint8_t k = 0;
-	static uint8_t last_k = 2;
+	static uint8_t previous_k = 2;
 	static uint8_t next_k = 1;
-
-
 
 	if(parseData)
 	{
-
-
+		//Set up DMA to receive next packet.
 		HAL_UART_Receive_DMA(&huart6, buff + next_k * BLOCK_SIZE, BLOCK_SIZE);
 
+
+		//Calculate start angles of current and last packet, compare them -> calculate step, convert to Q16
 		int current_start_angle_q8 = (((uint16_t)(*(buff + k * BLOCK_SIZE + ANGLE_OFFSET_14_8)) & 0x7f) << 10);
 		current_start_angle_q8 |= (*(buff + k * BLOCK_SIZE + ANGLE_OFFSET_07_0)) << 2;
-
-		int previous_start_angle_q8 = (((uint16_t)(*(buff + last_k * BLOCK_SIZE + ANGLE_OFFSET_14_8)) & 0x7f) << 10);
-		previous_start_angle_q8 |= (*(buff + last_k * BLOCK_SIZE + ANGLE_OFFSET_07_0)) << 2;
-
+		int previous_start_angle_q8 = (((uint16_t)(*(buff + previous_k * BLOCK_SIZE + ANGLE_OFFSET_14_8)) & 0x7f) << 10);
+		previous_start_angle_q8 |= (*(buff + previous_k * BLOCK_SIZE + ANGLE_OFFSET_07_0)) << 2;
 
 		int start_angle_diff_q8 = current_start_angle_q8 - previous_start_angle_q8;
 		if(previous_start_angle_q8 > current_start_angle_q8) start_angle_diff_q8 += (360 << 8);
@@ -201,35 +93,36 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 		int current_raw_angle_q16 = (previous_start_angle_q8 << 8);
 
 
-
-		if(previous_start_angle_q8 > 0)
+		if(previous_start_angle_q8 > 0 &&  map.recv_status != RECV_STATUS_SYNCED_TWICE_MAP_READY)
 		{
 			for(uint8_t i = 0; i < ULTRA_CABINS_IN_RESPONSE ; i++)
 			{
+				//Each ultra_cabin consists of data for three points.
 				int dist_q2[3];
 				int angle_q6[3];
 				int syncBit[3];
 
-				uint32_t combined = (*((uint32_t*)(buff + last_k * BLOCK_SIZE + ULTRA_CABIN_0_OFFSET + CABIN_SIZE * i)));
+				//Get one ultra-cabin FROM PREVIOUS BUFFER and save it as uint32_t
+				uint32_t combined = (*((uint32_t*)(buff + previous_k * BLOCK_SIZE + ULTRA_CABIN_0_OFFSET + CABIN_SIZE * i)));
 
-				//'signed, do not touch'
+				//"Magic shift", 'DO NOT TOUCH', from SDK.
 				int dist_major = (combined & 0xfff);
-
 				int dist_predict1 = (((int)(combined << 10)) >> 22);
 				int dist_predict2 = (((int)combined) >> 22);
 
 				int dist_major2;
-				uint32_t scale1;
-				uint32_t scale2;
+				uint32_t scale1, scale2;
 
-
-				//prefetch
+				//Fetch data from next ultra_cabin, from the right packet.
 				if(i == ULTRA_CABINS_IN_RESPONSE - 1){
+					//last ultra cabin in packet, get data from first ultra_cabin in "current" buffer
 					dist_major2 = (*((uint32_t*)(buff + k * BLOCK_SIZE + ULTRA_CABIN_0_OFFSET + CABIN_SIZE * 0))) & 0xfff;
 				}else{
-					dist_major2 = (*((uint32_t*)(buff + last_k * BLOCK_SIZE + ULTRA_CABIN_0_OFFSET + CABIN_SIZE * (i + 1)))) & 0xfff;
+					dist_major2 = (*((uint32_t*)(buff + previous_k * BLOCK_SIZE + ULTRA_CABIN_0_OFFSET + CABIN_SIZE * (i + 1)))) & 0xfff;
 				}
 
+
+				//### SDK MATH ###
 				dist_major = _varbitscale_decode(dist_major, scale1);
 				dist_major2 = _varbitscale_decode(dist_major2, scale2);
 
@@ -241,6 +134,8 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 					scale1 = scale2;
 				}
 
+
+				//Fetch data for THREE points
 				dist_q2[0] = (dist_major << 2);
 				if((dist_predict1 == 0xFFFFFE00) || (dist_predict1 == 0x1FF)){
 					dist_q2[1] = 0;
@@ -256,9 +151,24 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 					dist_q2[2] = (dist_predict2 + dist_base2) << 2;
 				}
 
+				//## ENDOF SDK MATH ###
+				for(int j = 0; j < 3; j++)
+				{
 
-				for(int j = 0; j < 3; j++){
 					syncBit[j] = (((current_raw_angle_q16 + angle_step_q16) % (360 << 16)) < angle_step_q16) ? 1 : 0;
+
+					//Check if a full 360 map is already saved (two syncs <=> twice passed 0 angle)
+					if(syncBit[j]){
+						if(map.recv_status == RECV_STATUS_NOT_SYNCED){
+							map.recv_status = RECV_STATUS_SYNCED_ONCE;
+
+						}else if(map.recv_status == RECV_STATUS_SYNCED_ONCE){
+							map.recv_status = RECV_STATUS_SYNCED_TWICE_MAP_READY;
+							break;
+						}
+					}
+
+					//### SDK MATH ###
 					int offset_angle_mean_q16 = (int)(7.5 * 3.1415926535 * (1<<16) / 180.0);
 
 					if(dist_q2[j] >= (50*4)){
@@ -273,91 +183,52 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 					if(angle_q6[j] < 0) angle_q6[j] += (360 << 6);
 					else if(angle_q6[j] >= (360 << 6)) angle_q6[j] -= (360 << 6);
 
+					//### ENDOF SDK MATH ###
+
 					float f_angle = ((float) angle_q6[j])/ 64.0f;
 					float f_distance = ((float) dist_q2[j]) / 4.0f;
 
 					uint16_t quality = dist_q2[j] ? (0x2f << RPLIDAR_RESP_MEASUREMENT_QUALITY_SHIFT) : 0;
 
-					if(f_angle >1.0 && f_angle < 360.0 && quality != 0  && cnt < POINTS && !lockArrays)
+					if(f_angle >1.0 && f_angle < 360.0 && quality != 0  && map.cnt < POINTS  && map.recv_status == RECV_STATUS_SYNCED_ONCE)
 					{
 					  //Add received data to the arrays
-					  angles[cnt] = f_angle;
-					  distances[cnt] = f_distance;
+					  map.angles[map.cnt] = f_angle;
+					  map.distances[map.cnt] = f_distance;
 
 					  //If this is the greatest distance, save it
-					  if(f_distance > dmax){
-						  dmax = f_distance;
-						  amax = f_angle;
+					  if(f_distance > map.dmax){
+						  map.dmax = f_distance;
+						  map.amax = f_angle;
 					  }
-					  else if(f_distance < dmin && f_distance > 0.0f){
-						  dmin = f_distance;
-						  amin = f_angle;
+					  else if(f_distance < map.dmin && f_distance > 0.0f){
+						  map.dmin = f_distance;
+						  map.amin = f_angle;
 					  }
-					  cnt++;
+					  map.cnt++;
 					}
 				}
-
+				if(map.recv_status == RECV_STATUS_SYNCED_TWICE_MAP_READY) break;
 			}
 		}
 		k++;
-		last_k++;
+		previous_k++;
 		next_k++;
 		if(k >= 3) k = 0;
-		if(last_k >= 3) last_k = 0;
+		if(previous_k >= 3) previous_k = 0;
 		if(next_k >= 3) next_k = 0;
-
 	}
-
+	//In main, this flag is used only once.
+	//Can be used to indicate that DMA has finished receiving data.
 	received_flag = true;
-
-
 }
-/*
- * //Set up listening for another 5 bytes...
-		HAL_UART_Receive_DMA(&huart6, packet, 5);
-		 if(!lockArrays)
-		 {
-			  //Transforming received data
-			  uint16_t quality = packet[0] >> 2;
-			  uint16_t angle = ((uint16_t)packet[1] >> 1) | (((uint16_t)packet[2]) << 7);
-			  float f_angle = ((float) angle) / 64.0; //Q6->float
-			  uint16_t distance = ((uint16_t) packet[3]) | ((uint16_t)packet[4] << 8);
-			  float f_distance = ((float)distance) / 4.0; //Q2->float
 
-			  if(f_angle > 0.0 && f_angle < 360.0  && cnt < POINTS)
-			  {
-				  //Add received data to the arrays
-				  angles[cnt] = f_angle;
-				  distances[cnt] = f_distance;
-
-				  //If this is the greatest distance, save it
-				  if(f_distance > dmax)
-				  {
-					  dmax = f_distance;
-					  amax = f_angle;
-				  }
-
-				  if(f_distance < dmin && f_distance > 0.0f)
-				  {
-					  dmin = f_distance;
-					  amin = f_angle;
-				  }
-				  cnt++;
-			  }
-		  }
-
-	 }
- */
 
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
-
-
-
 /* USER CODE END 0 */
 
 /**
@@ -367,7 +238,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -376,14 +246,12 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
   /* USER CODE END Init */
 
   /* Configure the system clock */
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -392,7 +260,6 @@ int main(void)
   MX_CRC_Init();
   MX_DMA2D_Init();
   MX_FMC_Init();
-  //MX_LTDC_Init();
   MX_QUADSPI_Init();
   MX_SDMMC1_SD_Init();
   MX_SPI2_Init();
@@ -406,112 +273,72 @@ int main(void)
   MX_USART6_UART_Init();
   /* USER CODE BEGIN 2 */
 
-   BSP_LCD_Init();
-   BSP_LCD_LayerDefaultInit(0, LCD_FB_START_ADDRESS);
-   BSP_LCD_LayerDefaultInit(1, LCD_FB_START_ADDRESS + 1024 * 1024 * 4);
-   BSP_LCD_DisplayOn();
-   BSP_LCD_SelectLayer(0);
+  //Initialize LCD layers (in separate 4MB memory sectors)
+  BSP_LCD_Init();
+  BSP_LCD_LayerDefaultInit(0, LCD_FB_START_ADDRESS);
+  BSP_LCD_LayerDefaultInit(1, LCD_FB_START_ADDRESS + 1024 * 1024 * 4);
+  BSP_LCD_DisplayOn();
+  BSP_LCD_SelectLayer(0);
 
+  //Pulse 500, Period 1000. Duty 50% by default
+  HAL_TIM_PWM_Start(&htim12, TIM_CHANNEL_1);
 
-   	//The PWM value is set to 50% duty cycle by default.
-   	HAL_TIM_PWM_Start(&htim12, TIM_CHANNEL_1);
+  //DMA transmits 2-byte RESET command over UART6
+  HAL_UART_Transmit_DMA(&huart6, (uint8_t*) rplidar_reset, 2);
 
+  //Clear both layers and wait  for the LIDAR to boot
+  BSP_LCD_SelectLayer(0);
+  BSP_LCD_Clear(0);
+  BSP_LCD_SelectLayer(1);
+  BSP_LCD_Clear(0);
+  HAL_Delay(1200);
 
-   	//DMA transmits 2-byte RESET command over UART6
-    HAL_UART_Transmit_DMA(&huart6, reset, 2);
+  //Send the ultra capsuled mode scan request over DMA
+  HAL_UART_Transmit_DMA(&huart6, (uint8_t*) rplidar_scan_ultra, 9);
 
+  //Clear UART receiving flags
+  __HAL_UART_CLEAR_IT(&huart6, UART_CLEAR_NEF|UART_CLEAR_OREF);
 
-    //Clear both layers and wait 1s for the LIDAR to stabilize
- 	BSP_LCD_SelectLayer(0);
- 	BSP_LCD_Clear(0);
- 	BSP_LCD_SelectLayer(1);
- 	BSP_LCD_Clear(0);
- 	HAL_Delay(1000);
+  //Set DMA to receive 8-byte response descriptor, do parse it(parseData==false)
+  HAL_UART_Receive_DMA(&huart6, buff, 8);
 
- 	//Start-scan request
- 	//HAL_UART_Transmit_DMA(&huart6, startscan, 2);
+  //Wait until the descriptor is received.
+  while(!received_flag);
 
- 	//TODO: CHANGE FOR CORRECT 2-BYTE CHECK
- 	//Gets one byte from UART until 0x5A packet. 0xA55A is start signal
- 	//while(fakerecv != 0x5a)
- 	//{
- 	//	__HAL_UART_CLEAR_IT(&huart6, UART_CLEAR_NEF|UART_CLEAR_OREF);  //Clear UART cache
- 	//	HAL_UART_Receive_DMA(&huart6, &fakerecv, 1); 	//Reveiving a byte will generate interrupt
- 	//}
+  //With parseData flag on, the DMA "received" interrupt from now will now parse the data packets
+  //received. The interrupt will also set DMA to pend for another 132b block, continuously.
+  parseData = true;
 
+  //Let the DMA receive blocks continuously
+  HAL_UART_Receive_DMA(&huart6, buff, BLOCK_SIZE);
 
-
- 	startscan_extended[8] = 0x00 ^ 0xa5 ^ 0x82 ^ 0x05 ^ 0x02^ 0x00 ^ 0x00 ^ 0x00 ^ 0x00;
-
-
- 	HAL_UART_Transmit_DMA(&huart6, startscan_extended, 9);
- 	__HAL_UART_CLEAR_IT(&huart6, UART_CLEAR_NEF|UART_CLEAR_OREF);  //Clear UART cache
- 	HAL_UART_Receive_DMA(&huart6, buff, 8);
- 	while(!received_flag);
- 	parseData = true;
-
-	//The DMA controller will now parse the data packets received
- 	//This flag also enables continuous receiving.
-
- 	HAL_UART_Receive_DMA(&huart6, buff, BLOCK_SIZE);
-
- 	uint8_t k = 1;
-
- 	while(1)
- 	{
-
- 		k^=1;
-
- 		//Wait for data to be gathered..
- 		while(cnt < POINTS);
-
- 			//TODO: FIX FLICKERING, SET UP TWO-LAYER DISPLAY MODE
- 			BSP_LCD_SetLayerVisible((k^1), ENABLE);
- 			HAL_Delay(3);
- 			BSP_LCD_SetLayerVisible((k), DISABLE);
-
-
-
-
-
-			BSP_LCD_SelectLayer(k);
-			BSP_LCD_Clear(k);
-			draw_grid(COLOR_GRID);
-			draw_point(ORIGIN_X, ORIGIN_Y, color(255, 255, 255), 1.0);
-			lockArrays = true;
-			draw_connected_cloud_fromArray(angles, distances, cnt, amin, dmin, amax, dmax, 0, 0, 1.0, true);
-			//draw_cloud_bars_fromArrays(angles, distances, cnt, dmax);
-			cnt = 0;
-			amax = 0;
-			amin = 0;
-			dmax = 0;
-			dmin = 0;
-			lockArrays = false;
-
-
-			//(Copy layer 0 to layer 1)
-			//HAL_DMA_Start_IT(&hdma_memtomem_dma2_stream0, LCD_FB_START_ADDRESS, LCD_FB_START_ADDRESS+1024*1024*4, 480*272*4);
-			//BSP_LCD_SetLayerVisible(0, ENABLE);
-			//BSP_LCD_SetLayerVisible(1, DISABLE);
-
-
-
-
-
- 	}
+  //LCD layer identifier
+  uint8_t k = 1;
 
   /* USER CODE END 2 */
 
-  /* Call init function for freertos objects (in freertos.c) */
-  MX_FREERTOS_Init();
-  /* Start scheduler */
-  osKernelStart();
-
-  /* We should never get here as control is now taken by the scheduler */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  while (1)
-  {
+	while(1)
+	{
+		k^=1; //Swap layers. Visible layer: k^1. Edited layer: k;
+
+		//Wait for data to be gathered...
+
+
+		BSP_LCD_SetLayerVisible((k^1), ENABLE);
+		HAL_Delay(5); //Reduces flickering due to layer swap
+		BSP_LCD_SetLayerVisible((k), DISABLE);
+		BSP_LCD_SelectLayer(k);
+		BSP_LCD_Clear(k);
+		draw_grid(COLOR_GRID);
+		draw_point(ORIGIN_X, ORIGIN_Y, make_color(255, 255, 255), 1.0);
+		while(map.recv_status != RECV_STATUS_SYNCED_TWICE_MAP_READY);
+		draw_connected_cloud_from_map(map, 0, 0, 1.0, true);
+
+		//Clear received data.
+		map = lidar_map();
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -590,7 +417,6 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-
 /* USER CODE END 4 */
 
 /**
