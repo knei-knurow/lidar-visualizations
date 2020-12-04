@@ -70,7 +70,7 @@ void draw_cloud_bars(uint8_t* mat, const Cloud& cloud);
 void draw_connected_cloud(uint8_t* mat, const Cloud& cloud, float scale = 0, int y_offset = 0, float lightness = 1.0, bool marks = false);
 
 color calc_color_angle(float v, float lightness = 1.0);
-color calc_color_dist(float dist, float lightness = 1.0);
+color calc_color_dist(float dist, float max, float lightness = 1.0);
 
 void draw_mark(uint8_t* mat, unsigned x, unsigned y, unsigned a, unsigned b, color c);
 
