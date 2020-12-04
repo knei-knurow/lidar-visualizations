@@ -117,11 +117,6 @@ void draw_point(uint8_t* mat, int x, int y, color c, float lightness) {
 	}
 }
 
-void draw_point(uint8_t* mat, int x, int y, float lightness) {
-	color c = calc_color(float(x), float(y));
-	draw_point(mat, x, y, c, lightness);
-}
-
 void draw_line(uint8_t* mat, float x0, float y0, float x1, float y1, color c) {
 	float x = x1 - x0, y = y1 - y0;
 	const float max = std::max(std::fabs(x), std::fabs(y));
@@ -172,17 +167,10 @@ void draw_cloud_bars(uint8_t* mat, const Cloud& cloud) {
 
 		int width = int(std::round(dist / cloud.max * max_width));
 
-		color c = calc_color(float(j * cloud.size / HEIGHT) / float(cloud.size));
+		color c = calc_color_angle(float(j * cloud.size / HEIGHT) / float(cloud.size));
 		for (int i = 0; i < width; i++) {
 			draw_pixel(mat, i, j, c);
 		}
-	}
-}
-
-void draw_cloud(uint8_t* mat, const Cloud& cloud, float scale, color c) {
-	for (auto & pt : cloud.pts) {
-		auto ptc = cyl_to_cart(pt, scale);
-		draw_point(mat, ptc.first, ptc.second);
 	}
 }
 
@@ -201,7 +189,7 @@ void draw_connected_cloud(uint8_t* mat, const Cloud& cloud, float scale, int y_o
 	//	mark_pt_idx.push_back(0);
 	for (int i = 1; i < cloud.size; i++) {
 		auto pt = cyl_to_cart(cloud.pts[i], scale);
-		auto c = calc_color(float(cnt) / float(cloud.size), lightness);
+		auto c = calc_color_dist(cloud.pts[i].second, lightness);
 
 		/*if ((cloud.pts[i].second == cloud.max || cloud.pts[i].second == cloud.min))
 			mark_pt_idx.push_back(i);*/
@@ -211,7 +199,7 @@ void draw_connected_cloud(uint8_t* mat, const Cloud& cloud, float scale, int y_o
 		last_pt = pt;
 		cnt++;
 	}
-	auto c = calc_color(float(cnt) / float(cloud.size), lightness);
+	auto c = calc_color_dist(cloud.pts.back().second, lightness);
 	draw_line(mat, float(last_pt.first), float(last_pt.second + y_offset), float(first_pt.first), float(first_pt.second + y_offset), c);
 
 	if (marks) {
@@ -223,26 +211,7 @@ void draw_connected_cloud(uint8_t* mat, const Cloud& cloud, float scale, int y_o
 	}
 }
 
-void draw_cloud_shape(uint8_t* mat, const Cloud& cloud, int y_offset, float lightness) {
-	std::pair<float, float> pt_prev, pt = cloud.pts.back();
-	float dist_prev, dist = cloud.pts.back().second;
-	int cnt = 0;
-	for (int i = 0; i < cloud.shape.size(); i++) {
-		pt_prev = pt;
-		dist_prev = dist;
-		pt = cloud.shape[i].front();
-		draw_point(mat, pt.first, pt.second + y_offset, calc_color(float(cnt) / float(cloud.size), lightness));
-		cnt++;
-		for (int j = 1; j < cloud.shape[i].size(); j++) {
-			pt_prev = pt;
-			pt = cloud.shape[i][j];
-			draw_line(mat, float(pt_prev.first), float(pt_prev.second + y_offset), float(pt.first), float(pt.second + y_offset), calc_color(float(cnt) / float(cloud.size), lightness));
-			cnt++;
-		}
-	}
-}
-
-color calc_color(float v, float lightness) {
+color calc_color_angle(float v, float lightness) {
 	color c0, c1;
 	if (v >= 0 && v <= 0.33f) {
 		c0 = COLOR_CLOUD0;
@@ -269,6 +238,10 @@ color calc_color(float v, float lightness) {
 	c1.g *= 1.0f - float(v) / 0.34f;
 	c1.b *= 1.0f - float(v) / 0.34f;
 	return color(float(c0.r + c1.r) * lightness, float(c0.g + c1.g) * lightness, float(c0.b + c1.b) * lightness);
+}
+
+color calc_color_dist(float v, float lightness) {
+	return color(int(v * 0.1) % 256, int(v * 0.1) % 256, int(v * 0.1) % 256);
 }
 
 void draw_mark(uint8_t* mat, unsigned x, unsigned y, unsigned a, unsigned b, color c) {
@@ -305,91 +278,9 @@ float calc_scale(const Cloud& cloud) {
 	return float(HEIGHT) * 0.7f / cloud.max;
 }
 
-void find_shape(Cloud& cloud, float q, float scale) {
-	if (scale == 0)
-		scale = calc_scale(cloud);
-	cloud.shape = { {cyl_to_cart(cloud.pts[0], scale)} };
-	for (size_t i = 1; i < cloud.size; i++) {
-		float dist0 = cloud.pts[i - 1].second;
-		float dist1 = cloud.pts[i].second;
-
-		if (std::fabs(dist0 - dist1) <= q) {
-			cloud.shape.back().push_back(cyl_to_cart(cloud.pts[i], scale));
-		}
-		else {
-			cloud.shape.push_back({ cyl_to_cart(cloud.pts[i], scale) });
-		}
-	}
-}
-
 void rotate_cloud(Cloud& cloud, float angle) {
 	for (auto& i : cloud.pts) {
 		i.first += angle;
 		if (i.first >= 360) i.first -= 360;
-	}
-}
-
-float perpendicular_dst(const std::pair<float, float>& pt, const std::pair<float, float>& line_start, const std::pair<float, float>& line_end) {
-	float dx = line_end.first - line_start.first;
-	float dy = line_end.second - line_start.second;
-
-	float mag = std::pow(std::pow(dx, 2.0f) + std::pow(dy, 2.0f), 0.5f);
-	if (mag > 0.0) {
-		dx /= mag; dy /= mag;
-	}
-
-	float pvx = pt.first - line_start.first;
-	float pvy = pt.second - line_start.second;
-
-	float pvdot = dx * pvx + dy * pvy;
-
-	float dsx = pvdot * dx;
-	float dsy = pvdot * dy;
-
-	float ax = pvx - dsx;
-	float ay = pvy - dsy;
-
-	return std::pow(std::pow(ax, 2.0f) + std::pow(ay, 2.0f), 0.5f);
-}
-
-void ramer_douglas_peucker(std::vector<std::pair<int, int>> point_list, double epsilon, std::vector<std::pair<int, int>>& out)
-{
-	if (point_list.size() < 2)
-		return;
-
-	float dmax = 0.0;
-	size_t index = 0;
-	size_t end = point_list.size() - 1;
-	for (size_t i = 1; i < end; i++) {
-		float d = perpendicular_dst(point_list[i], point_list[0], point_list[end]);
-		if (d > dmax) {
-			index = i;
-			dmax = d;
-		}
-	}
-
-	if (dmax > epsilon) {
-		std::vector<std::pair<int, int>> recResults1;
-		std::vector<std::pair<int, int>> recResults2;
-		std::vector<std::pair<int, int>> firstLine(point_list.begin(), point_list.begin() + index + 1);
-		std::vector<std::pair<int, int>> lastLine(point_list.begin() + index, point_list.end());
-		ramer_douglas_peucker(firstLine, epsilon, recResults1);
-		ramer_douglas_peucker(lastLine, epsilon, recResults2);
-
-		out.assign(recResults1.begin(), recResults1.end() - 1);
-		out.insert(out.end(), recResults2.begin(), recResults2.end());
-		if (out.size() < 2)
-			return;
-	}
-	else {
-		out.clear();
-		out.push_back(point_list[0]);
-		out.push_back(point_list[end]);
-	}
-}
-
-void smooth_shape(Cloud& cloud, float epsilon) {
-	for (auto& shape : cloud.shape) {
-		ramer_douglas_peucker(shape, epsilon, shape);
 	}
 }

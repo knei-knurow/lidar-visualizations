@@ -16,8 +16,8 @@
 const int WIDTH = 1280;
 const int HEIGHT = 720;
 const int CHANNELS = 4;
-const int ORIGIN_X = WIDTH / 2 - 160;
-const int ORIGIN_Y = HEIGHT / 2 - 90;
+const int ORIGIN_X = WIDTH / 2;
+const int ORIGIN_Y = HEIGHT / 2;
 
 typedef sf::Color color;
 
@@ -30,7 +30,6 @@ const color COLOR_CLOUD2 = color(255, 255, 0);
 
 struct Cloud {
 	std::vector<std::pair<float, float>> pts;
-	std::vector<std::vector<std::pair<int, int>>> shape;
 	float min = 25000000;
 	float max = 0;
 	float avg = 0;
@@ -57,7 +56,6 @@ bool save_txt(const Cloud& cloud);
 void draw_pixel(uint8_t* mat, int x, int y, color c);
 
 void draw_point(uint8_t* mat, int x, int y, color c, float lightness = 1.0);
-void draw_point(uint8_t* mat, int x, int y, float lightness = 1.0);
 
 void draw_line(uint8_t* mat, float x0, float y0, float x1, float y1, color c);
 
@@ -69,13 +67,10 @@ void draw_grid(uint8_t* mat, color c);
 
 void draw_cloud_bars(uint8_t* mat, const Cloud& cloud);
 
-void draw_cloud(uint8_t* mat, const Cloud& cloud, float k = 0.04, color c = color::White);
-
 void draw_connected_cloud(uint8_t* mat, const Cloud& cloud, float scale = 0, int y_offset = 0, float lightness = 1.0, bool marks = false);
 
-void draw_cloud_shape(uint8_t* mat, const Cloud& cloud, int y_offset = 0, float lightness = 1.0);
-
-color calc_color(float v, float lightness = 1.0);
+color calc_color_angle(float v, float lightness = 1.0);
+color calc_color_dist(float dist, float lightness = 1.0);
 
 void draw_mark(uint8_t* mat, unsigned x, unsigned y, unsigned a, unsigned b, color c);
 
@@ -86,12 +81,4 @@ std::pair<int, int> cyl_to_cart(std::pair<float, float> pt, float k = 1);
 
 float calc_scale(const Cloud& cloud);
 
-void find_shape(Cloud& cloud, float q = 50, float scale = 0);
-
 void rotate_cloud(Cloud& cloud, float angle);
-
-float perpendicular_dst(const std::pair<float, float>& pt, const std::pair<float, float>& line_start, const std::pair<float, float>& line_end);
-
-void ramer_douglas_peucker(std::vector<std::pair<int, int>> point_list, double epsilon, std::vector<std::pair<int, int>>& out);
-
-void smooth_shape(Cloud& cloud, float epsilon);
