@@ -86,11 +86,11 @@ void draw_background(uint8_t* mat, color c);
 
 void draw_grid(uint8_t* mat, color c);
 
-void draw_cloud_bars(uint8_t* mat, const Cloud& cloud);
+void draw_cloud_bars(uint8_t* mat, const Cloud& cloud, unsigned coloring = 0);
 
-void draw_connected_cloud(uint8_t* mat, const Cloud& cloud, float scale = 0, int y_offset = 0, float lightness = 1.0, bool marks = false);
+void draw_connected_cloud(uint8_t* mat, const Cloud& cloud, float scale = 0, int y_offset = 0, float lightness = 1.0, bool marks = false, unsigned coloring = 0);
 
-void draw_cloud(uint8_t* mat, const Cloud& cloud, float scale = 0, int y_offset = 0, float lightness = 1.0, bool marks = false);
+void draw_cloud(uint8_t* mat, const Cloud& cloud, float scale = 0, int y_offset = 0, float lightness = 1.0, bool marks = false, unsigned coloring = 0);
 
 color calc_color_angle(float v, float lightness = 1.0);
 color calc_color_dist(float dist, float max, float lightness = 1.0);

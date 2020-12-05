@@ -17,6 +17,7 @@ int main(int argc, char** argv) {
 	bool running = true;
 	bool rotate = false;
 	bool mouse_ray = true;
+	unsigned coloring = 0;
 	unsigned point_cloud_display_mode = 2;
 	Cloud cloud;
 	rplidar::RPlidarDriver * lidar = nullptr;
@@ -162,6 +163,10 @@ int main(int argc, char** argv) {
 				if (event.key.code == sf::Keyboard::M) {
 					point_cloud_display_mode = (point_cloud_display_mode + 1) % 3;
 				}
+				// Point cloud display mode event
+				if (event.key.code == sf::Keyboard::C) {
+					coloring = (coloring + 1) % 2;
+				}
 			}
 		}
 
@@ -192,17 +197,17 @@ int main(int argc, char** argv) {
 		auto pt_0 = cyl_to_cart(cloud.pts[cloud.min_idx], scale);
 
 
-		draw_cloud_bars(mat, cloud);
+		draw_cloud_bars(mat, cloud, coloring);
 
 		if (point_cloud_display_mode == 2) {
-			draw_connected_cloud(mat, cloud, scale, 0, 0.5, false);
-			draw_cloud(mat, cloud, scale, 0, 1, false);
+			draw_connected_cloud(mat, cloud, scale, 0, 0.5, false, coloring);
+			draw_cloud(mat, cloud, scale, 0, 1, true, coloring);
 		}
 		else if (point_cloud_display_mode == 1) {
-			draw_connected_cloud(mat, cloud, scale, 0, 1, true);
+			draw_connected_cloud(mat, cloud, scale, 0, 1, true, coloring);
 		}
 		else if (point_cloud_display_mode == 0) {
-			draw_cloud(mat, cloud, scale, 0, 1, true);
+			draw_cloud(mat, cloud, scale, 0, 1, true, coloring);
 		}
 
 		draw_point(mat, ORIGIN_X, ORIGIN_Y, color(255, 0, 0), 1.0);
