@@ -50,7 +50,7 @@ void check_invalid_args(int argc, char** argv) {
 
 void print_help() {
 	std::cout << "-----------------------------------------------------------" << std::endl;
-	std::cout << "Lidar Visualizations" << std::endl;
+	std::cout << "LIDAR Visualizations" << std::endl;
 	std::cout << "-----------------------------------------------------------" << std::endl;
 	std::cout << "Authors: Bartek Dudek, Szymon Bednorz" << std::endl;
 	std::cout << "Source: https://github.com/knei-knurow/lidar-visualizations" << std::endl;
@@ -60,7 +60,7 @@ void print_help() {
 	std::cout << std::endl;
 	std::cout << "Options:" << std::endl;
 	std::cout << "\t-f <arg>\tfile with lines containing angle [deg] and distance [mm] separated by whitespaces" << std::endl;
-	std::cout << "\t-h\tShow this message" << std::endl;
+	std::cout << "\t-h      \tShow this message" << std::endl;
 	std::cout << "\t-o <arg>\tOutput directory" << std::endl;
 	std::cout << "\t-p <arg>\tRPLidar port" << std::endl;
 	std::cout << "\t-s <arg>\tSelect display scale (1mm -> 1px for scale = 1.0)" << std::endl;
@@ -72,8 +72,34 @@ void print_help() {
 	std::cout << "GUI Mode Keyboard Shortcuts:" << std::endl;
 	std::cout << "\tT\tsave point cloud as TXT" << std::endl;
 	std::cout << "\tS\tsave screenshot" << std::endl;
+	std::cout << "\tUp/Down\tscale displayed cloud (faster with shift, slower with ctrl)" << std::endl;
 	std::cout << "\tA/D\trotate cloud (faster with shift, slower with ctrl; only with files)" << std::endl;
 	std::cout << "\tP\trotation on/off (only with files" << std::endl;
+}
+
+//
+// GUI
+//
+size_t mouse_ray_to_point(const Cloud& cloud, int x, int y) {
+	x -= ORIGIN_X;
+	y -= ORIGIN_Y;
+	if (y == 0) {
+		return -1;
+	}
+	auto angle = 360.0f - atan2(y, x) * 180.0f / acos(-1.0f) - 180.0f - 90.0f;
+	if (angle < 0) {
+		angle += 360.0f;
+	}
+
+	for (int i = 1; i < cloud.size; i++) {
+		if (cloud.pts[i - 1].first <= angle && cloud.pts[i].first >= angle) {
+			return i;
+		}
+	}
+	if (cloud.pts.back().first <= angle && 360.0f >= angle) {
+		return cloud.size - 1;
+	}
+	return 0;
 }
 
 //
@@ -90,8 +116,14 @@ bool load_cloud(const std::string& filename, Cloud& cloud) {
 		std::stringstream sline(line);
 		sline >> angle >> dist;
 
-		if (dist > cloud.max) cloud.max = dist;
-		if (dist < cloud.min && dist > 0) cloud.min = dist;
+		if (dist > cloud.max) {
+			cloud.max = dist;
+			cloud.max_idx = cloud.size;
+		}
+		if (dist < cloud.min && dist > 0) {
+			cloud.min = dist;
+			cloud.min_idx = cloud.size;
+		}
 		cloud.size++;
 		cloud.avg += dist;
 		cloud.pts.push_back(std::make_pair(angle, dist));
@@ -178,11 +210,18 @@ void draw_point(uint8_t* mat, int x, int y, color c, float lightness) {
 	c.r *= lightness;
 	c.g *= lightness;
 	c.b *= lightness;
-	for (auto cx : { -1, 0, 1 }) {
-		for (auto cy : { -1, 0, 1 }) {
-			draw_pixel(mat, x + cx, y + cy, c);
-		}
-	}
+
+	draw_pixel(mat, x, y - 1, c);
+	draw_pixel(mat, x - 1, y, c);
+	draw_pixel(mat, x + 0, y, c);
+	draw_pixel(mat, x + 1, y, c);
+	draw_pixel(mat, x, y + 1, c);
+
+	//for (auto cx : { -1, 0, 1 }) {
+	//	for (auto cy : { -1, 0, 1 }) {
+	//		draw_pixel(mat, x + cx, y + cy, c);
+	//	}
+	//}
 }
 
 void draw_line(uint8_t* mat, float x0, float y0, float x1, float y1, color c) {
@@ -255,7 +294,6 @@ void draw_connected_cloud(uint8_t* mat, const Cloud& cloud, float scale, int y_o
 	auto last_pt = first_pt;
 	for (int i = 1; i < cloud.size; i++) {
 		auto pt = cyl_to_cart(cloud.pts[i], scale);
-		// auto c = calc_color_dist(cloud.pts[i].second, cloud.max, lightness);
 		auto c = calc_color_angle(float(cnt) / float(cloud.size), lightness);
 
 		if (cloud.pts[i].second > 0 && cloud.pts[i - 1].second > 0)
@@ -264,9 +302,36 @@ void draw_connected_cloud(uint8_t* mat, const Cloud& cloud, float scale, int y_o
 		last_pt = pt;
 		cnt++;
 	}
-	// auto c = calc_color_dist(cloud.pts.back().second, cloud.max, lightness);
 	auto c = calc_color_angle(float(cnt) / float(cloud.size), lightness);
 	draw_line(mat, float(last_pt.first), float(last_pt.second + y_offset), float(first_pt.first), float(first_pt.second + y_offset), c);
+
+	auto pt_min = cyl_to_cart(cloud.pts[cloud.min_idx], scale);
+	auto pt_max = cyl_to_cart(cloud.pts[cloud.max_idx], scale);
+	draw_mark(mat, pt_min.first, pt_min.second, cloud.min);
+	draw_mark(mat, pt_max.first, pt_max.second, cloud.max);
+}
+
+void draw_cloud(uint8_t* mat, const Cloud& cloud, float scale, int y_offset, float lightness, bool marks) {
+	if (scale == 0)
+		scale = calc_scale(cloud);
+
+	if (cloud.size == 0)
+		return;
+
+	int cnt = 1;
+	for (int i = 0; i < cloud.size; i++) {
+		auto pt = cyl_to_cart(cloud.pts[i], scale);
+		auto c = calc_color_angle(float(cnt) / float(cloud.size), lightness);
+		draw_point(mat, pt.first, pt.second, c, lightness);
+		cnt++;
+	}
+
+	if (marks) {
+		auto pt_min = cyl_to_cart(cloud.pts[cloud.min_idx], scale);
+		auto pt_max = cyl_to_cart(cloud.pts[cloud.max_idx], scale);
+		draw_mark(mat, pt_min.first, pt_min.second, cloud.min);
+		draw_mark(mat, pt_max.first, pt_max.second, cloud.max);
+	}
 }
 
 color calc_color_angle(float v, float lightness) {
@@ -302,7 +367,10 @@ color calc_color_dist(float dist, float max, float lightness) {
 	return calc_color_angle(dist / max, lightness);
 }
 
-void draw_mark(uint8_t* mat, unsigned x, unsigned y, unsigned a, unsigned b, color c) {
+void draw_mark(uint8_t* mat, int x, int y, float val, color c) {
+	int a = val / 1000;
+	int b = int(val) % 1000;
+
 	draw_point(mat, x, y, c);
 	auto str = std::to_string(a) + "." + std::to_string(b);
 	x += -12;

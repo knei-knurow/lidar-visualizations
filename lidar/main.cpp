@@ -162,12 +162,27 @@ int main(int argc, char** argv) {
 
 		draw_background(mat, COLOR_BACKGROUND);
 		draw_grid(mat, COLOR_GRID);
-		draw_point(mat, ORIGIN_X, ORIGIN_Y, color(255, 0, 0), 1.0);
+
+		auto mouse = sf::Mouse::getPosition(window);
+		auto pt_i = mouse_ray_to_point(cloud, mouse.x, mouse.y);
+		std::pair<int, int> pt;
+		if (pt_i != size_t(-1)) {
+			pt = cyl_to_cart(cloud.pts[pt_i], scale);
+			draw_line(mat, ORIGIN_X, ORIGIN_Y, pt.first, pt.second, COLOR_BACKGROUND_GRID);
+		}
+
+		auto pt_0 = cyl_to_cart(cloud.pts[cloud.min_idx], scale);
+
+
 		draw_cloud_bars(mat, cloud);
-		draw_connected_cloud(mat, cloud, scale, +3, 0.4, false);
-		draw_connected_cloud(mat, cloud, scale, +0, 0.6, false);
-		draw_connected_cloud(mat, cloud, scale, -3, 0.8, false);
-		draw_connected_cloud(mat, cloud, scale, -6, 1.0, true);
+
+		draw_connected_cloud(mat, cloud, scale, 0, 0.5, false);
+		draw_cloud(mat, cloud, scale, 0, 1, false);
+		draw_point(mat, ORIGIN_X, ORIGIN_Y, color(255, 0, 0), 1.0);
+
+		if (pt_i != size_t(-1)) {
+			draw_mark(mat, pt.first, pt.second, cloud.pts[pt_i].second);
+		}
 
 		window.draw(sprite);
 		texture.update(mat);

@@ -35,6 +35,8 @@ struct Cloud {
 	float max = 0;
 	float avg = 0;
 	float std = 0;
+	size_t max_idx = -1;
+	size_t min_idx = -1;
 	size_t size = 0;
 };
 
@@ -48,6 +50,11 @@ std::string get_arg(int argc, char** argv, const std::string & arg);
 void check_invalid_args(int argc, char** argv);
 
 void print_help();
+
+//
+// GUI
+//
+size_t mouse_ray_to_point(const Cloud& cloud, int x, int y);
 
 //
 // IO
@@ -81,10 +88,12 @@ void draw_cloud_bars(uint8_t* mat, const Cloud& cloud);
 
 void draw_connected_cloud(uint8_t* mat, const Cloud& cloud, float scale = 0, int y_offset = 0, float lightness = 1.0, bool marks = false);
 
+void draw_cloud(uint8_t* mat, const Cloud& cloud, float scale = 0, int y_offset = 0, float lightness = 1.0, bool marks = false);
+
 color calc_color_angle(float v, float lightness = 1.0);
 color calc_color_dist(float dist, float max, float lightness = 1.0);
 
-void draw_mark(uint8_t* mat, unsigned x, unsigned y, unsigned a, unsigned b, color c);
+void draw_mark(uint8_t* mat, int x, int y, float val, color c = color(255, 255, 255));
 
 //
 // Point cloud calculations
