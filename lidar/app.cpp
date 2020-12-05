@@ -122,21 +122,26 @@ void load_cloud_from_buffer(rplidar_response_measurement_node_hq_t* buffer, size
 	cloud.std = std::sqrt(cloud.std);
 }
 
-bool save_screenshot(uint8_t* mat, std::string filename) {
+std::string create_filename(const std::string& dir, const std::string& dot_ext, size_t cnt) {
+	auto t = std::time(nullptr);
+	auto tm = *std::localtime(&t);
+	std::ostringstream oss;
+	oss << std::put_time(&tm, "%d.%m.%Y-%H.%M.%S");
+	return dir + "/" + std::to_string(cnt) + "-" + oss.str() + dot_ext;
+}
+
+bool save_screenshot(uint8_t* mat, const std::string& dir) {
+	static size_t cnt = 0;
 	sf::Texture texture;
 	texture.create(WIDTH, HEIGHT);
 	sf::Sprite sprite(texture);
 	texture.update(mat);
-	return texture.copyToImage().saveToFile(filename);
+	return texture.copyToImage().saveToFile(create_filename(dir, ".png", cnt++));
 }
 
-bool save_screenshot(uint8_t* mat) {
+bool save_txt(const Cloud& cloud, const std::string& dir) {
 	static size_t cnt = 0;
-	return save_screenshot(mat, std::to_string(time(0)) + "-" + std::to_string(cnt++) + ".png");
-}
-
-bool save_txt(const Cloud& cloud, const std::string& filename) {
-	std::ofstream file(filename);
+	std::ofstream file(create_filename(dir, ".txt", cnt++));
 	if (!file) {
 		return false;
 	}
@@ -148,11 +153,6 @@ bool save_txt(const Cloud& cloud, const std::string& filename) {
 		file << pt.first << " " << pt.second << std::endl;
 	}
 	return true;
-}
-
-bool save_txt(const Cloud& cloud) {
-	static size_t cnt = 0;
-	return save_txt(cloud, std::to_string(time(0)) + "-" + std::to_string(cnt++) + ".txt");
 }
 
 //

@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <sstream>
 #include <vector>
+#include <iomanip>
 #include <cmath>
 #include <utility>
 #include <SFML\System.hpp>
@@ -55,11 +56,11 @@ bool load_cloud(const std::string& filename, Cloud& cloud);
 
 void load_cloud_from_buffer(rplidar_response_measurement_node_hq_t* buffer, size_t count, Cloud& cloud, bool skip_bad = true);
 
-bool save_screenshot(uint8_t* mat);
-bool save_screenshot(uint8_t* mat, std::string filename);
+std::string create_filename(const std::string& dir, const std::string& dot_ext);
 
-bool save_txt(const Cloud& cloud, const std::string& filename);
-bool save_txt(const Cloud& cloud);
+bool save_screenshot(uint8_t* mat, const std::string& dir);
+
+bool save_txt(const Cloud& cloud, const std::string& dir);
 
 //
 // Drawing

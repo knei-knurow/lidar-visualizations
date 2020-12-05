@@ -3,7 +3,6 @@
 #include <fstream>
 #include <algorithm>
 #include <sstream>
-#include <iomanip>
 #include <vector>
 #include <cmath>
 #include <utility>
@@ -38,16 +37,12 @@ int main(int argc, char** argv) {
 		rotate = true;
 	}
 
-	// Set output filename (without extenstion) or directory
-	std::string output = get_arg(argc, argv, "-o");
-	if (!output.empty()) {
-		auto t = std::time(nullptr);
-		auto tm = *std::localtime(&t);
-		std::ostringstream oss;
-		oss << std::put_time(&tm, "%d-%m-%Y-%H-%M-%S");
-		output = oss.str();
+	// Set output directory
+	std::string output_dir = get_arg(argc, argv, "-o");
+	if (output_dir.empty()) {
+		output_dir = ".";
 	}
-	
+
 	// Set RPLIDAR port
 	std::string port = get_arg(argc, argv, "-p");
 	if (argc == 2) {
@@ -101,12 +96,12 @@ int main(int argc, char** argv) {
 			else if (event.type == sf::Event::KeyPressed) {
 				// Screenshot saving event
 				if (event.key.code == sf::Keyboard::S) {
-					if (save_screenshot(mat)) std::cout << "Screenshot saved." << std::endl;
+					if (save_screenshot(mat, output_dir)) std::cout << "Screenshot saved." << std::endl;
 					else std::cerr << "ERROR: Something went wrong while saving screenshot." << std::endl;
 				}
 				// TXT cloud saving event
 				if (event.key.code == sf::Keyboard::T) {
-					if (save_txt(cloud)) std::cout << "TXT cloud saved." << std::endl;
+					if (save_txt(cloud, output_dir)) std::cout << "TXT cloud saved." << std::endl;
 					else std::cerr << "ERROR: Something went wrong while saving TXT cloud." << std::endl;
 				}
 				// Stop/Start point cloud rotating
