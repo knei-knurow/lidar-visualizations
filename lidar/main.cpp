@@ -16,6 +16,7 @@ int main(int argc, char** argv) {
 	using namespace rp::standalone;
 	bool running = true;
 	bool rotate = false;
+	bool mouse_ray = true;
 	Cloud cloud;
 	rplidar::RPlidarDriver * lidar = nullptr;
 	rplidar_response_measurement_node_hq_t * buffer = nullptr;
@@ -67,7 +68,7 @@ int main(int argc, char** argv) {
 
 	// Set scale
 	std::string scale_s = get_arg(argc, argv, "-s");
-	float scale = 0.02;
+	float scale = 0.04;
 	if (!scale_s.empty()) {
 		try {
 			scale = std::fabs(std::stod(scale_s));
@@ -75,6 +76,11 @@ int main(int argc, char** argv) {
 		catch (...) {
 			std::cerr << "ERROR: Invalid scale." << std::endl;
 		}
+	}
+
+	// Set scale
+	if (check_arg_exist(argc, argv, "-r")) {
+		mouse_ray = false;
 	}
 
 	check_invalid_args(argc, argv);
@@ -163,12 +169,15 @@ int main(int argc, char** argv) {
 		draw_background(mat, COLOR_BACKGROUND);
 		draw_grid(mat, COLOR_GRID);
 
+
 		auto mouse = sf::Mouse::getPosition(window);
 		auto pt_i = mouse_ray_to_point(cloud, mouse.x, mouse.y);
 		std::pair<int, int> pt;
-		if (pt_i != size_t(-1)) {
-			pt = cyl_to_cart(cloud.pts[pt_i], scale);
-			draw_line(mat, ORIGIN_X, ORIGIN_Y, pt.first, pt.second, COLOR_BACKGROUND_GRID);
+		if (mouse_ray) {
+			if (pt_i != size_t(-1)) {
+				pt = cyl_to_cart(cloud.pts[pt_i], scale);
+				draw_line(mat, ORIGIN_X, ORIGIN_Y, pt.first, pt.second, COLOR_BACKGROUND_GRID);
+			}
 		}
 
 		auto pt_0 = cyl_to_cart(cloud.pts[cloud.min_idx], scale);
@@ -180,7 +189,7 @@ int main(int argc, char** argv) {
 		draw_cloud(mat, cloud, scale, 0, 1, false);
 		draw_point(mat, ORIGIN_X, ORIGIN_Y, color(255, 0, 0), 1.0);
 
-		if (pt_i != size_t(-1)) {
+		if (pt_i != size_t(-1) && mouse_ray) {
 			draw_mark(mat, pt.first, pt.second, cloud.pts[pt_i].second);
 		}
 

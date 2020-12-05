@@ -63,6 +63,7 @@ void print_help() {
 	std::cout << "\t-h      \tShow this message" << std::endl;
 	std::cout << "\t-o <arg>\tOutput directory" << std::endl;
 	std::cout << "\t-p <arg>\tRPLidar port" << std::endl;
+	std::cout << "\t-r      \tDisable mouse ray" << std::endl;
 	std::cout << "\t-s <arg>\tSelect display scale (1mm -> 1px for scale = 1.0)" << std::endl;
 	std::cout << "\t-S <arg>\tSelect scenario" << std::endl;
 	std::cout << std::endl;
@@ -86,7 +87,7 @@ size_t mouse_ray_to_point(const Cloud& cloud, int x, int y) {
 	if (y == 0) {
 		return -1;
 	}
-	auto angle = 360.0f - atan2(y, x) * 180.0f / acos(-1.0f) - 180.0f - 90.0f;
+	auto angle = 90.0f - atan2(y, x) * 180.0f / acos(-1.0f);
 	if (angle < 0) {
 		angle += 360.0f;
 	}
