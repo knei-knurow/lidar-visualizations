@@ -78,6 +78,8 @@ void draw_point(uint8_t* mat, int x, int y, color c, float lightness = 1.0);
 
 void draw_line(uint8_t* mat, float x0, float y0, float x1, float y1, color c);
 
+void draw_line_color_dist(uint8_t* mat, float x0, float y0, float x1, float y1, float max, float lightness = 1.0);
+
 void draw_ray(uint8_t* mat, float x0, float y0, float x1, float y1, const color color);
 
 void draw_background(uint8_t* mat, color c);

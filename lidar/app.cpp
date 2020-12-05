@@ -235,6 +235,17 @@ void draw_line(uint8_t* mat, float x0, float y0, float x1, float y1, color c) {
 	}
 }
 
+void draw_line_color_dist(uint8_t* mat, float x0, float y0, float x1, float y1, float max_dist, float lightness) {
+	float x = x1 - x0, y = y1 - y0;
+	const float max = std::max(std::fabs(x), std::fabs(y));
+	x /= max; y /= max;
+	for (float n = 0; n < max; n++) {
+		float dist = std::hypot(x0 - ORIGIN_X, y0 - ORIGIN_Y);
+		draw_point(mat, int(x0), int(y0), calc_color_dist(dist, max_dist, lightness));
+		x0 += x; y0 += y;
+	}
+}
+
 void draw_ray(uint8_t* mat, float x0, float y0, float x1, float y1, color c) {
 	float x = x1 - x0, y = y1 - y0;
 	const float max = std::max(std::fabs(x), std::fabs(y));
@@ -295,16 +306,20 @@ void draw_connected_cloud(uint8_t* mat, const Cloud& cloud, float scale, int y_o
 	auto last_pt = first_pt;
 	for (int i = 1; i < cloud.size; i++) {
 		auto pt = cyl_to_cart(cloud.pts[i], scale);
-		auto c = calc_color_angle(float(cnt) / float(cloud.size), lightness);
+		// auto c = calc_color_angle(float(cnt) / float(cloud.size), lightness);
+		auto c = calc_color_dist(cloud.pts[i].second, cloud.max, lightness);
 
 		if (cloud.pts[i].second > 0 && cloud.pts[i - 1].second > 0)
-			draw_line(mat, float(last_pt.first), float(last_pt.second + y_offset), float(pt.first), float(pt.second) + y_offset, c);
+			// draw_line(mat, float(last_pt.first), float(last_pt.second + y_offset), float(pt.first), float(pt.second) + y_offset, c);
+			draw_line_color_dist(mat, float(last_pt.first), float(last_pt.second + y_offset), float(pt.first), float(pt.second) + y_offset, cloud.max * scale, lightness);
 
 		last_pt = pt;
 		cnt++;
 	}
-	auto c = calc_color_angle(float(cnt) / float(cloud.size), lightness);
-	draw_line(mat, float(last_pt.first), float(last_pt.second + y_offset), float(first_pt.first), float(first_pt.second + y_offset), c);
+	//auto c = calc_color_angle(float(cnt) / float(cloud.size), lightness);
+	auto c = calc_color_dist(cloud.pts.back().second, cloud.max, lightness);
+	// draw_line(mat, float(last_pt.first), float(last_pt.second + y_offset), float(first_pt.first), float(first_pt.second + y_offset), c);
+	draw_line_color_dist(mat, float(last_pt.first), float(last_pt.second + y_offset), float(first_pt.first), float(first_pt.second + y_offset), cloud.max * scale, lightness);
 
 	auto pt_min = cyl_to_cart(cloud.pts[cloud.min_idx], scale);
 	auto pt_max = cyl_to_cart(cloud.pts[cloud.max_idx], scale);
@@ -322,7 +337,8 @@ void draw_cloud(uint8_t* mat, const Cloud& cloud, float scale, int y_offset, flo
 	int cnt = 1;
 	for (int i = 0; i < cloud.size; i++) {
 		auto pt = cyl_to_cart(cloud.pts[i], scale);
-		auto c = calc_color_angle(float(cnt) / float(cloud.size), lightness);
+		// auto c = calc_color_angle(float(cnt) / float(cloud.size), lightness);
+		auto c = calc_color_dist(cloud.pts[i].second, cloud.max, lightness);
 		draw_point(mat, pt.first, pt.second, c, lightness);
 		cnt++;
 	}
@@ -365,7 +381,33 @@ color calc_color_angle(float v, float lightness) {
 }
 
 color calc_color_dist(float dist, float max, float lightness) {
-	return calc_color_angle(dist / max, lightness);
+	float v = dist / max;
+	color c0, c1;
+	if (v >= 0 && v <= 0.33f) {
+		c0 = color(255, 255, 0);
+		c1 = color(255, 0, 0);
+	}
+	else if (v <= 0.66f) {
+		v -= 0.33f;
+		c0 = color(0, 255, 0);
+		c1 = color(255, 255, 0);
+	}
+	else if (v <= 1.0f) {
+		v -= 0.66f;
+		c0 = color(0, 0, 255);
+		c1 = color(0, 255, 0);
+	}
+	else {
+		return color(255, 255, 255);
+	}
+
+	c0.r *= float(v) / 0.34f;
+	c0.g *= float(v) / 0.34f;
+	c0.b *= float(v) / 0.34f;
+	c1.r *= 1.0f - float(v) / 0.34f;
+	c1.g *= 1.0f - float(v) / 0.34f;
+	c1.b *= 1.0f - float(v) / 0.34f;
+	return color(float(c0.r + c1.r) * lightness, float(c0.g + c1.g) * lightness, float(c0.b + c1.b) * lightness);
 }
 
 void draw_mark(uint8_t* mat, int x, int y, float val, color c) {
