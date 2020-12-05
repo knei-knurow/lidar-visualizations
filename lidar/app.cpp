@@ -56,17 +56,24 @@ void print_help() {
 	std::cout << "Source: https://github.com/knei-knurow/lidar-visualizations" << std::endl;
 	std::cout << std::endl;
 	std::cout << "Usage:" << std::endl;
-	std::cout << "\tlidar [source type] [source]" << std::endl;
+	std::cout << "\tlidar [options]" << std::endl;
 	std::cout << std::endl;
-	std::cout << "Source Types:" << std::endl;
-	std::cout << "\tfile\tfile with lines containing angle [deg] and distance [mm] separated by whitespaces" << std::endl;
-	std::cout << "\tport\tRPLidar port" << std::endl;
+	std::cout << "Options:" << std::endl;
+	std::cout << "\t-f <arg>\tfile with lines containing angle [deg] and distance [mm] separated by whitespaces" << std::endl;
+	std::cout << "\t-h\tShow this message" << std::endl;
+	std::cout << "\t-o <arg>\tOutput directory" << std::endl;
+	std::cout << "\t-p <arg>\tRPLidar port" << std::endl;
+	std::cout << "\t-s <arg>\tSelect display scale (1mm -> 1px for scale = 1.0)" << std::endl;
+	std::cout << "\t-S <arg>\tSelect scenario" << std::endl;
+	std::cout << std::endl;
+	std::cout << "Scenarios:" << std::endl;
+	std::cout << "\t0\tsave point clouds from each frame as batched TXT file" << std::endl;
 	std::cout << std::endl;
 	std::cout << "GUI Mode Keyboard Shortcuts:" << std::endl;
 	std::cout << "\tT\tsave point cloud as TXT" << std::endl;
 	std::cout << "\tS\tsave screenshot" << std::endl;
-	std::cout << "\tA/D\trotate cloud (faster with shift, slower with ctrl)" << std::endl;
-	std::cout << "\tP\trotation on/off" << std::endl;
+	std::cout << "\tA/D\trotate cloud (faster with shift, slower with ctrl; only with files)" << std::endl;
+	std::cout << "\tP\trotation on/off (only with files" << std::endl;
 }
 
 //

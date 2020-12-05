@@ -56,7 +56,7 @@ bool load_cloud(const std::string& filename, Cloud& cloud);
 
 void load_cloud_from_buffer(rplidar_response_measurement_node_hq_t* buffer, size_t count, Cloud& cloud, bool skip_bad = true);
 
-std::string create_filename(const std::string& dir, const std::string& dot_ext);
+std::string create_filename(const std::string& dir, const std::string& dot_ext, size_t cnt);
 
 bool save_screenshot(uint8_t* mat, const std::string& dir);
 

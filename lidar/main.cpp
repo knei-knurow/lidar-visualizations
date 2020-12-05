@@ -57,15 +57,24 @@ int main(int argc, char** argv) {
 	}
 	
 	// Set scenario - general program behaviour
-	std::string scenario = get_arg(argc, argv, "-s");
-	if (scenario == "record_to_txt") {
-		// TODO
-	}
-	else if (scenario == "record_to_png") {
+	std::string scenario = get_arg(argc, argv, "-S");
+	if (scenario == "0") {
 		// TODO
 	}
 	else if (!scenario.empty()) {
 		std::cerr << "ERROR: Unknown scenario. Running with default settings." << std::endl;
+	}
+
+	// Set scale
+	std::string scale_s = get_arg(argc, argv, "-s");
+	float scale = 0.02;
+	if (!scale_s.empty()) {
+		try {
+			scale = std::fabs(std::stod(scale_s));
+		}
+		catch (...) {
+			std::cerr << "ERROR: Invalid scale." << std::endl;
+		}
 	}
 
 	check_invalid_args(argc, argv);
@@ -122,6 +131,22 @@ int main(int argc, char** argv) {
 					if (event.key.shift) rotation = 30.0f;
 					rotate_cloud(cloud, -rotation);
 				}
+				// Cloud scale event
+				if (event.key.code == sf::Keyboard::Down) {
+					scale -= 0.01f;
+					if (event.key.control) scale -= 0.001f;
+					if (event.key.shift) scale -= 0.05f;
+					
+					if (scale <= 0) scale = 0.001;
+				}
+				// Cloud scale event
+				if (event.key.code == sf::Keyboard::Up) {
+					scale += 0.01f;
+					if (event.key.control) scale += 0.001f;
+					if (event.key.shift) scale += 0.05f;
+					
+					if (scale <= 0) scale = 0.001;
+				}
 			}
 		}
 
@@ -139,10 +164,10 @@ int main(int argc, char** argv) {
 		draw_grid(mat, COLOR_GRID);
 		draw_point(mat, ORIGIN_X, ORIGIN_Y, color(255, 0, 0), 1.0);
 		draw_cloud_bars(mat, cloud);
-		draw_connected_cloud(mat, cloud, 0.04, +3, 0.4, false);
-		draw_connected_cloud(mat, cloud, 0.04, +0, 0.6, false);
-		draw_connected_cloud(mat, cloud, 0.04, -3, 0.8, false);
-		draw_connected_cloud(mat, cloud, 0.04, -6, 1.0, true);
+		draw_connected_cloud(mat, cloud, scale, +3, 0.4, false);
+		draw_connected_cloud(mat, cloud, scale, +0, 0.6, false);
+		draw_connected_cloud(mat, cloud, scale, -3, 0.8, false);
+		draw_connected_cloud(mat, cloud, scale, -6, 1.0, true);
 
 		window.draw(sprite);
 		texture.update(mat);
