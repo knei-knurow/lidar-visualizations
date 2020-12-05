@@ -9,7 +9,7 @@
 #include <SFML\System.hpp>
 #include <SFML\Window.hpp>
 #include <SFML\Graphics.hpp>
-#include "lidar.h"
+#include "app.h"
 #include "characters.h"
 #include <rplidar.h>
 
@@ -168,6 +168,7 @@ void draw_cloud_bars(uint8_t* mat, const Cloud& cloud) {
 		int width = int(std::round(dist / cloud.max * max_width));
 
 		color c = calc_color_angle(float(j * cloud.size / HEIGHT) / float(cloud.size));
+		// color c = color(180, 255, 180);
 		for (int i = 0; i < width; i++) {
 			draw_pixel(mat, i, j, c);
 		}
@@ -186,7 +187,8 @@ void draw_connected_cloud(uint8_t* mat, const Cloud& cloud, float scale, int y_o
 	auto last_pt = first_pt;
 	for (int i = 1; i < cloud.size; i++) {
 		auto pt = cyl_to_cart(cloud.pts[i], scale);
-		auto c = calc_color_dist(cloud.pts[i].second, cloud.max, lightness);
+		// auto c = calc_color_dist(cloud.pts[i].second, cloud.max, lightness);
+		auto c = calc_color_angle(float(cnt) / float(cloud.size), lightness);
 
 		if (cloud.pts[i].second > 0 && cloud.pts[i - 1].second > 0)
 			draw_line(mat, float(last_pt.first), float(last_pt.second + y_offset), float(pt.first), float(pt.second) + y_offset, c);
@@ -194,7 +196,8 @@ void draw_connected_cloud(uint8_t* mat, const Cloud& cloud, float scale, int y_o
 		last_pt = pt;
 		cnt++;
 	}
-	auto c = calc_color_dist(cloud.pts.back().second, cloud.max, lightness);
+	// auto c = calc_color_dist(cloud.pts.back().second, cloud.max, lightness);
+	auto c = calc_color_angle(float(cnt) / float(cloud.size), lightness);
 	draw_line(mat, float(last_pt.first), float(last_pt.second + y_offset), float(first_pt.first), float(first_pt.second + y_offset), c);
 }
 
@@ -228,11 +231,7 @@ color calc_color_angle(float v, float lightness) {
 }
 
 color calc_color_dist(float dist, float max, float lightness) {
-	auto v = dist / max * lightness;
-	color c(v * 255, v * 255, v * 255);
-	return c;
-
-	return color(int(v * 0.1) % 256, int(v * 0.1) % 256, int(v * 0.1) % 256);
+	return calc_color_angle(dist / max, lightness);
 }
 
 void draw_mark(uint8_t* mat, unsigned x, unsigned y, unsigned a, unsigned b, color c) {

@@ -15,13 +15,13 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="lidar.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="communication.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="app.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -29,10 +29,10 @@
     <ClInclude Include="communication.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="lidar.h">
+    <ClInclude Include="characters.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="characters.h">
+    <ClInclude Include="app.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

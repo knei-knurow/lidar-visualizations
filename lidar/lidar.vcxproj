@@ -89,13 +89,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="communication.cpp" />
-    <ClCompile Include="lidar.cpp" />
+    <ClCompile Include="app.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="characters.h" />
     <ClInclude Include="communication.h" />
-    <ClInclude Include="lidar.h" />
+    <ClInclude Include="app.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

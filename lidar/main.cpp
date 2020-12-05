@@ -9,7 +9,7 @@
 #include <SFML\System.hpp>
 #include <SFML\Window.hpp>
 #include <SFML\Graphics.hpp>
-#include "lidar.h"
+#include "app.h"
 #include "communication.h"
 
 int main(int argc, char** argv) {
@@ -123,7 +123,6 @@ int main(int argc, char** argv) {
 				}
 			}
 		}
-
 
 		if (lidar) {
 			size_t count;
