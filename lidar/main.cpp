@@ -17,6 +17,7 @@ int main(int argc, char** argv) {
 	bool running = true;
 	bool rotate = false;
 	bool mouse_ray = true;
+	unsigned point_cloud_display_mode = 2;
 	Cloud cloud;
 	rplidar::RPlidarDriver * lidar = nullptr;
 	rplidar_response_measurement_node_hq_t * buffer = nullptr;
@@ -78,7 +79,7 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	// Set scale
+	// Set mouse ray
 	if (check_arg_exist(argc, argv, "-r")) {
 		mouse_ray = false;
 	}
@@ -153,6 +154,14 @@ int main(int argc, char** argv) {
 					
 					if (scale <= 0) scale = 0.001;
 				}
+				// Mouse ray event
+				if (event.key.code == sf::Keyboard::R) {
+					mouse_ray = !mouse_ray;
+				}
+				// Point cloud display mode event
+				if (event.key.code == sf::Keyboard::M) {
+					point_cloud_display_mode = (point_cloud_display_mode + 1) % 3;
+				}
 			}
 		}
 
@@ -185,8 +194,17 @@ int main(int argc, char** argv) {
 
 		draw_cloud_bars(mat, cloud);
 
-		draw_connected_cloud(mat, cloud, scale, 0, 0.5, false);
-		draw_cloud(mat, cloud, scale, 0, 1, false);
+		if (point_cloud_display_mode == 2) {
+			draw_connected_cloud(mat, cloud, scale, 0, 0.5, false);
+			draw_cloud(mat, cloud, scale, 0, 1, false);
+		}
+		else if (point_cloud_display_mode == 1) {
+			draw_connected_cloud(mat, cloud, scale, 0, 1, true);
+		}
+		else if (point_cloud_display_mode == 0) {
+			draw_cloud(mat, cloud, scale, 0, 1, true);
+		}
+
 		draw_point(mat, ORIGIN_X, ORIGIN_Y, color(255, 0, 0), 1.0);
 
 		if (pt_i != size_t(-1) && mouse_ray) {
