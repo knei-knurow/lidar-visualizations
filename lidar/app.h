@@ -38,9 +38,20 @@ struct Cloud {
 };
 
 //
+// Command line arguments parsing
+//
+bool check_arg_exist(int argc, char** argv, const std::string & arg);
+
+std::string get_arg(int argc, char** argv, const std::string & arg);
+
+void check_invalid_args(int argc, char** argv);
+
+void print_help();
+
+//
 // IO
 //
-void load_cloud(const std::string& filename, Cloud& cloud, int k, float scale = 0);
+bool load_cloud(const std::string& filename, Cloud& cloud);
 
 void load_cloud_from_buffer(rplidar_response_measurement_node_hq_t* buffer, size_t count, Cloud& cloud, bool skip_bad = true);
 

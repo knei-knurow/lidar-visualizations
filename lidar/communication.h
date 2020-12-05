@@ -14,7 +14,7 @@ bool rplidar_print_scan_modes(rplidar::RPlidarDriver* lidar, _u16* mode = nullpt
 
 void rplidar_print_scan_info(rplidar_response_measurement_node_hq_t* buffer, size_t count);
 
-bool rplidar_launch(rplidar::RPlidarDriver* lidar, const char* port = DEF_PORT, _u32 baudrate = DEF_BAUDRATE, _u16 preffered_mode_id = -1);
+bool rplidar_launch(rplidar::RPlidarDriver* lidar, std::string port = DEF_PORT, _u32 baudrate = DEF_BAUDRATE, _u16 preffered_mode_id = -1);
 
 bool rplidar_scan(rplidar::RPlidarDriver* lidar, rplidar_response_measurement_node_hq_t* buffer, size_t & count, bool verbose = false);
 

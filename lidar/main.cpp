@@ -3,6 +3,7 @@
 #include <fstream>
 #include <algorithm>
 #include <sstream>
+#include <iomanip>
 #include <vector>
 #include <cmath>
 #include <utility>
@@ -21,68 +22,73 @@ int main(int argc, char** argv) {
 	rplidar_response_measurement_node_hq_t * buffer = nullptr;
 	uint8_t * mat = nullptr;
 	
-	if (argc <= 1) {
+	// Print help
+	if (check_arg_exist(argc, argv, "-h") || argc == 1) {
+		print_help();
+		running = false;
+	}
+
+	// Set input point cloud filename
+	std::string file = get_arg(argc, argv, "-f");
+	if (!file.empty()) {
+		if (!load_cloud(file, cloud)) {
+			running = false;
+			file = "";
+		}
+		rotate = true;
+	}
+
+	// Set output filename (without extenstion) or directory
+	std::string output = get_arg(argc, argv, "-o");
+	if (!output.empty()) {
+		auto t = std::time(nullptr);
+		auto tm = *std::localtime(&t);
+		std::ostringstream oss;
+		oss << std::put_time(&tm, "%d-%m-%Y-%H-%M-%S");
+		output = oss.str();
+	}
+	
+	// Set RPLIDAR port
+	std::string port = get_arg(argc, argv, "-p");
+	if (argc == 2) {
+		port = std::string(argv[1]);
+	}
+	if (!port.empty() && file.empty()) {
 		lidar = rplidar::RPlidarDriver::CreateDriver();
-		if (!rplidar_launch(lidar)) {
+		if (!rplidar_launch(lidar, port)) {
 			running = false;
+			port = "";
 		}
 	}
-	else if (std::strcmp(argv[1], "--help") == 0 || std::strcmp(argv[1], "-h") == 0) {
-		std::cout << "-----------------------------------------------------------" << std::endl;
-		std::cout << "Lidar Visualizations" << std::endl;
-		std::cout << "-----------------------------------------------------------" << std::endl;
-		std::cout << "Authors: Bartek Dudek, Szymon Bednorz" << std::endl;
-		std::cout << "Source: https://github.com/knei-knurow/lidar-visualizations" << std::endl;
-		std::cout << std::endl;
-		std::cout << "Usage:" << std::endl;
-		std::cout << "\tlidar [source type] [source]" << std::endl;
-		std::cout << std::endl;
-		std::cout << "Source Types:" << std::endl;
-		std::cout << "\tfile\tfile with lines containing angle [deg] and distance [mm] separated by whitespaces" << std::endl;
-		std::cout << "\tport\tRPLidar port" << std::endl;
-		std::cout << std::endl;
-		std::cout << "GUI Mode Keyboard Shortcuts:" << std::endl;
-		std::cout << "\tT\tsave point cloud as TXT" << std::endl;
-		std::cout << "\tS\tsave screenshot" << std::endl;
-		std::cout << "\tA/D\trotate cloud (faster with shift, slower with ctrl)" << std::endl;
-		std::cout << "\tP\trotation on/off" << std::endl;
-		running = false;
+	
+	// Set scenario - general program behaviour
+	std::string scenario = get_arg(argc, argv, "-s");
+	if (scenario == "record_to_txt") {
+		// TODO
 	}
-	else if (argc == 3) {
-		if (std::strcmp(argv[1], "file") == 0) {
-			load_cloud(argv[2], cloud, 0, 0);
-			rotate = true;
-			if (cloud.size == 0) {
-				std::cerr << "Error: File does not contain a valid cloud." << std::endl;
-				running = false;
-			}
-		}
-		else if (std::strcmp(argv[1], "port") == 0) {
-			lidar = rplidar::RPlidarDriver::CreateDriver();
-			if (!rplidar_launch(lidar, argv[2])) {
-				running = false;
-			}
-		}
-		else {
-			std::cerr << "Error: Unknown source type." << std::endl;
-			running = false;
-		}
+	else if (scenario == "record_to_png") {
+		// TODO
 	}
-	else {
-		std::cerr << "Error: Invalid parameters passed. Run `lidar.exe -h` for help." << std::endl;
-		running = false;
+	else if (!scenario.empty()) {
+		std::cerr << "ERROR: Unknown scenario. Running with default settings." << std::endl;
 	}
 
-	if (!running) {
-		return 0;
+	check_invalid_args(argc, argv);
+
+	if ((file == "" && port == "") && running) {
+		std::cerr << "ERROR: No valid port or input file specified." << std::endl;
 	}
 
+	// Main program loop
 	buffer = new rplidar_response_measurement_node_hq_t[rplidar::RPlidarDriver::MAX_SCAN_NODES];
 	mat = new uint8_t[WIDTH * HEIGHT * CHANNELS];
-	sf::RenderWindow window(sf::VideoMode(WIDTH, HEIGHT), "Lidar", sf::Style::Close | sf::Style::Titlebar);
 	sf::Texture texture;
 	texture.create(WIDTH, HEIGHT);
 	sf::Sprite sprite(texture);
+	sf::RenderWindow window;
+	if (running) {
+		window.create(sf::VideoMode(WIDTH, HEIGHT), "Lidar", sf::Style::Close | sf::Style::Titlebar);
+	}
 	while (running) {
 		sf::sleep(sf::milliseconds(1000 / 30));
 		sf::Event event;
@@ -130,12 +136,14 @@ int main(int argc, char** argv) {
 			load_cloud_from_buffer(buffer, count, cloud);
 		}
 
+		if (rotate) {
+			rotate_cloud(cloud, 0.5);
+		}
+
 		draw_background(mat, COLOR_BACKGROUND);
 		draw_grid(mat, COLOR_GRID);
 		draw_point(mat, ORIGIN_X, ORIGIN_Y, color(255, 0, 0), 1.0);
 		draw_cloud_bars(mat, cloud);
-
-		if (rotate) rotate_cloud(cloud, 0.5);
 		draw_connected_cloud(mat, cloud, 0.04, +3, 0.4, false);
 		draw_connected_cloud(mat, cloud, 0.04, +0, 0.6, false);
 		draw_connected_cloud(mat, cloud, 0.04, -3, 0.8, false);
@@ -146,6 +154,7 @@ int main(int argc, char** argv) {
 		window.display();
 	}
 
+	// Cleaning up
 	if (lidar) {
 		rplidar_stop(lidar);
 	}

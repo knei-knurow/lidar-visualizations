@@ -84,11 +84,11 @@ void rplidar_print_scan_info(rplidar_response_measurement_node_hq_t* buffer, siz
 		<< ", avg. quality: " << avg_quality << std::endl;
 }
 
-bool rplidar_launch(rplidar::RPlidarDriver* lidar, const char* port, _u32 baudrate, _u16 preffered_mode_id) {
+bool rplidar_launch(rplidar::RPlidarDriver* lidar, std::string port, _u32 baudrate, _u16 preffered_mode_id) {
 	std::cout << "LIDAR connection:" << std::endl;
 	std::cout << "  Port: " << port << "" << std::endl;
 	std::cout << "  Baudrate: " << baudrate << "" << std::endl;
-	auto res = lidar->connect(port, baudrate);
+	auto res = lidar->connect(port.c_str(), baudrate);
 	if (IS_FAIL(res)) {
 		std::cout << "ERROR: Unable to establish connection with LIDAR." << std::endl;
 		return false;

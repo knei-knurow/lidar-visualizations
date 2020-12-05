@@ -14,9 +14,65 @@
 #include <rplidar.h>
 
 //
+// Command line arguments parsing
+//
+bool check_arg_exist(int argc, char** argv, const std::string & arg) {
+	auto it = std::find(argv, argv + argc, arg);
+	if (it != argv + argc) {
+		(*it)[0] = '\0';
+		return true;
+	}
+	return false;
+}
+
+std::string get_arg(int argc, char** argv, const std::string & arg) {
+	auto it = std::find(argv, argv + argc, arg);
+	if (it != argv + argc && it + 1 != argv + argc) {
+		std::string s(*(it + 1));
+		(*it)[0] = '\0';
+		(*(it + 1))[0] = '\0';
+		return s;
+	}
+	return "";
+}
+
+void check_invalid_args(int argc, char** argv) {
+	std::vector<int> v;
+	for (int i = 1; i < argc; i++) {
+		if (std::strlen(*(argv + i)) > 0) {
+			v.push_back(i);
+		}
+	}
+	for (auto i : v) {
+		std::cerr << "ERROR: Invalid argument: " << argv[i] << std::endl;
+	}
+}
+
+void print_help() {
+	std::cout << "-----------------------------------------------------------" << std::endl;
+	std::cout << "Lidar Visualizations" << std::endl;
+	std::cout << "-----------------------------------------------------------" << std::endl;
+	std::cout << "Authors: Bartek Dudek, Szymon Bednorz" << std::endl;
+	std::cout << "Source: https://github.com/knei-knurow/lidar-visualizations" << std::endl;
+	std::cout << std::endl;
+	std::cout << "Usage:" << std::endl;
+	std::cout << "\tlidar [source type] [source]" << std::endl;
+	std::cout << std::endl;
+	std::cout << "Source Types:" << std::endl;
+	std::cout << "\tfile\tfile with lines containing angle [deg] and distance [mm] separated by whitespaces" << std::endl;
+	std::cout << "\tport\tRPLidar port" << std::endl;
+	std::cout << std::endl;
+	std::cout << "GUI Mode Keyboard Shortcuts:" << std::endl;
+	std::cout << "\tT\tsave point cloud as TXT" << std::endl;
+	std::cout << "\tS\tsave screenshot" << std::endl;
+	std::cout << "\tA/D\trotate cloud (faster with shift, slower with ctrl)" << std::endl;
+	std::cout << "\tP\trotation on/off" << std::endl;
+}
+
+//
 // IO
 //
-void load_cloud(const std::string& filename, Cloud& cloud, int k, float scale) {
+bool load_cloud(const std::string& filename, Cloud& cloud) {
 	std::ifstream file(filename);
 	while (file) {
 		std::string line;
@@ -38,7 +94,12 @@ void load_cloud(const std::string& filename, Cloud& cloud, int k, float scale) {
 		cloud.std += (cloud.avg - pt.second) * (cloud.avg - pt.second);
 	}
 	cloud.std = std::sqrt(cloud.std);
-	// find_shape(cloud, k, scale);
+
+	if (cloud.size == 0) {
+		std::cerr << "Error: File does not contain a valid cloud." << std::endl;
+		return false;
+	}
+	return true;
 }
 
 void load_cloud_from_buffer(rplidar_response_measurement_node_hq_t* buffer, size_t count, Cloud& cloud, bool skip_bad) {
