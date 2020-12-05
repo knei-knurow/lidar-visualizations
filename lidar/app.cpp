@@ -75,7 +75,10 @@ void print_help() {
 	std::cout << "\tS\tsave screenshot" << std::endl;
 	std::cout << "\tUp/Down\tscale displayed cloud (faster with shift, slower with ctrl)" << std::endl;
 	std::cout << "\tA/D\trotate cloud (faster with shift, slower with ctrl; only with files)" << std::endl;
-	std::cout << "\tP\trotation on/off (only with files" << std::endl;
+	std::cout << "\tP\trotation on/off (only with files)" << std::endl;
+	std::cout << "\tC\tswitch color maps" << std::endl;
+	std::cout << "\tM\tswitch point cloud display modes" << std::endl;
+	std::cout << "\tR\tmouse ray display on/off" << std::endl;
 }
 
 //
