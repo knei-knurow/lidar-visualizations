@@ -30,7 +30,7 @@
     <ClCompile Include="app.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="frame_to_txt_scenario.cpp">
+    <ClCompile Include="save_series_scenario.cpp">
       <Filter>Source Files\scenarios</Filter>
     </ClCompile>
   </ItemGroup>

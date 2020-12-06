@@ -90,7 +90,7 @@
   <ItemGroup>
     <ClCompile Include="communication.cpp" />
     <ClCompile Include="app.cpp" />
-    <ClCompile Include="frame_to_txt_scenario.cpp" />
+    <ClCompile Include="save_series_scenario.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
