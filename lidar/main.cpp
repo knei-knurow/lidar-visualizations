@@ -9,80 +9,96 @@
 #include <SFML\System.hpp>
 #include <SFML\Window.hpp>
 #include <SFML\Graphics.hpp>
-#include "lidar.h"
+#include "app.h"
 #include "communication.h"
 
-#ifdef WINDOWED_APP
 int main(int argc, char** argv) {
 	using namespace rp::standalone;
 	bool running = true;
 	bool rotate = false;
+	bool mouse_ray = true;
+	unsigned coloring = 0;
+	unsigned point_cloud_display_mode = 2;
 	Cloud cloud;
 	rplidar::RPlidarDriver * lidar = nullptr;
 	rplidar_response_measurement_node_hq_t * buffer = nullptr;
 	uint8_t * mat = nullptr;
 	
-	if (argc <= 1) {
+	// Print help
+	if (check_arg_exist(argc, argv, "-h") || argc == 1) {
+		print_help();
+		running = false;
+	}
+
+	// Set input point cloud filename
+	std::string file = get_arg(argc, argv, "-f");
+	if (!file.empty()) {
+		if (!load_cloud(file, cloud)) {
+			running = false;
+			file = "";
+		}
+		rotate = true;
+	}
+
+	// Set output directory
+	std::string output_dir = get_arg(argc, argv, "-o");
+	if (output_dir.empty()) {
+		output_dir = ".";
+	}
+
+	// Set RPLIDAR port
+	std::string port = get_arg(argc, argv, "-p");
+	if (!port.empty() && file.empty()) {
 		lidar = rplidar::RPlidarDriver::CreateDriver();
-		if (rplidar_launch(lidar)) {
+		if (!rplidar_launch(lidar, port)) {
 			running = false;
+			port = "";
 		}
 	}
-	else if (std::strcmp(argv[1], "--help") == 0 || std::strcmp(argv[1], "-h") == 0) {
-		std::cout << "-----------------------------------------------------------" << std::endl;
-		std::cout << "Lidar Visualizations" << std::endl;
-		std::cout << "-----------------------------------------------------------" << std::endl;
-		std::cout << "Authors: Bartek Dudek, Szymon Bednorz" << std::endl;
-		std::cout << "Source: https://github.com/knei-knurow/lidar-visualizations" << std::endl;
-		std::cout << std::endl;
-		std::cout << "Usage:" << std::endl;
-		std::cout << "\tlidar [source type] [source]" << std::endl;
-		std::cout << std::endl;
-		std::cout << "Source Types:" << std::endl;
-		std::cout << "\tfile\tfile with lines containing angle [deg] and distance [mm] separated by whitespaces" << std::endl;
-		std::cout << "\tport\tRPLidar port" << std::endl;
-		std::cout << std::endl;
-		std::cout << "GUI Mode Keyboard Shortcuts:" << std::endl;
-		std::cout << "\tS\tsave screenshot" << std::endl;
-		std::cout << "\tA/D\trotate cloud (faster with shift, slower with ctrl)" << std::endl;
-		std::cout << "\tP\trotation on/off" << std::endl;
-		running = false;
+	
+	// Set scenario - general program behaviour
+	std::string scenario = get_arg(argc, argv, "-S");
+	if (scenario == "0") {
+		// TODO
 	}
-	else if (argc == 3) {
-		if (std::strcmp(argv[1], "file") == 0) {
-			load_cloud(argv[2], cloud, 0, 0);
-			rotate = true;
-			if (cloud.size == 0) {
-				std::cerr << "Error: File does not contain a valid cloud." << std::endl;
-				running = false;
-			}
+	else if (!scenario.empty()) {
+		std::cerr << "ERROR: Unknown scenario. Running with default settings." << std::endl;
+	}
+
+	// Set scale
+	std::string scale_s = get_arg(argc, argv, "-s");
+	float scale = 0.04;
+	if (!scale_s.empty()) {
+		try {
+			scale = std::fabs(std::stod(scale_s));
 		}
-		else if (std::strcmp(argv[1], "port") == 0) {
-			lidar = rplidar::RPlidarDriver::CreateDriver();
-			if (rplidar_launch(lidar, argv[2])) {
-				running = false;
-			}
-		}
-		else {
-			std::cerr << "Error: Unknown source type." << std::endl;
-			running = false;
+		catch (...) {
+			std::cerr << "ERROR: Invalid scale." << std::endl;
 		}
 	}
-	else {
-		std::cerr << "Error: Invalid parameters passed. Run `lidar.exe -h` for help." << std::endl;
+
+	// Set mouse ray
+	if (check_arg_exist(argc, argv, "-r")) {
+		mouse_ray = false;
+	}
+
+	check_invalid_args(argc, argv);
+
+	if ((file == "" && port == "") && running) {
+		std::cerr << "ERROR: No valid port or input file specified." << std::endl;
 		running = false;
 	}
 
-	if (!running) {
-		return 0;
-	}
-
+	// Main program loop
 	buffer = new rplidar_response_measurement_node_hq_t[rplidar::RPlidarDriver::MAX_SCAN_NODES];
 	mat = new uint8_t[WIDTH * HEIGHT * CHANNELS];
-	sf::RenderWindow window(sf::VideoMode(WIDTH, HEIGHT), "Lidar", sf::Style::Close | sf::Style::Titlebar);
 	sf::Texture texture;
 	texture.create(WIDTH, HEIGHT);
 	sf::Sprite sprite(texture);
+	sf::RenderWindow window;
+	if (running) {
+		window.create(sf::VideoMode(WIDTH, HEIGHT), "Lidar", sf::Style::Close | sf::Style::Titlebar);
+	}
 	while (running) {
 		sf::sleep(sf::milliseconds(1000 / 30));
 		sf::Event event;
@@ -95,12 +111,12 @@ int main(int argc, char** argv) {
 			else if (event.type == sf::Event::KeyPressed) {
 				// Screenshot saving event
 				if (event.key.code == sf::Keyboard::S) {
-					if (save_screenshot(mat)) std::cout << "Screenshot saved." << std::endl;
+					if (save_screenshot(mat, output_dir)) std::cout << "Screenshot saved." << std::endl;
 					else std::cerr << "ERROR: Something went wrong while saving screenshot." << std::endl;
 				}
 				// TXT cloud saving event
 				if (event.key.code == sf::Keyboard::T) {
-					if (save_txt(cloud)) std::cout << "TXT cloud saved." << std::endl;
+					if (save_txt(cloud, output_dir)) std::cout << "TXT cloud saved." << std::endl;
 					else std::cerr << "ERROR: Something went wrong while saving TXT cloud." << std::endl;
 				}
 				// Stop/Start point cloud rotating
@@ -108,18 +124,46 @@ int main(int argc, char** argv) {
 					rotate = !rotate;
 				}
 				// Cloud rotation event
-				if (event.key.code == sf::Keyboard::D) {
+				if (event.key.code == sf::Keyboard::Right) {
 					float rotation = 5.0f;
 					if (event.key.control) rotation = 1.0f;
 					if (event.key.shift) rotation = 30.0f;
 					rotate_cloud(cloud, rotation);
 				}
 				// Cloud rotation event
-				if (event.key.code == sf::Keyboard::A) {
+				if (event.key.code == sf::Keyboard::Left) {
 					float rotation = 5.0f;
 					if (event.key.control) rotation = 1.0f;
 					if (event.key.shift) rotation = 30.0f;
 					rotate_cloud(cloud, -rotation);
+				}
+				// Cloud scale event
+				if (event.key.code == sf::Keyboard::Down) {
+					scale -= 0.01f;
+					if (event.key.control) scale -= 0.001f;
+					if (event.key.shift) scale -= 0.05f;
+					
+					if (scale <= 0) scale = 0.001;
+				}
+				// Cloud scale event
+				if (event.key.code == sf::Keyboard::Up) {
+					scale += 0.01f;
+					if (event.key.control) scale += 0.001f;
+					if (event.key.shift) scale += 0.05f;
+					
+					if (scale <= 0) scale = 0.001;
+				}
+				// Mouse ray event
+				if (event.key.code == sf::Keyboard::R) {
+					mouse_ray = !mouse_ray;
+				}
+				// Point cloud display mode event
+				if (event.key.code == sf::Keyboard::M) {
+					point_cloud_display_mode = (point_cloud_display_mode + 1) % 3;
+				}
+				// Point cloud display mode event
+				if (event.key.code == sf::Keyboard::C) {
+					coloring = (coloring + 1) % 2;
 				}
 			}
 		}
@@ -130,22 +174,49 @@ int main(int argc, char** argv) {
 			load_cloud_from_buffer(buffer, count, cloud);
 		}
 
+		if (rotate) {
+			rotate_cloud(cloud, 0.5);
+		}
+
 		draw_background(mat, COLOR_BACKGROUND);
 		draw_grid(mat, COLOR_GRID);
-		draw_point(mat, ORIGIN_X, ORIGIN_Y, color(255, 0, 0), 1.0);
-		draw_cloud_bars(mat, cloud);
 
-		if (rotate) rotate_cloud(cloud, 0.5);
-		draw_connected_cloud(mat, cloud, 0.04, +3, 0.4, false);
-		draw_connected_cloud(mat, cloud, 0.04, +0, 0.6, false);
-		draw_connected_cloud(mat, cloud, 0.04, -3, 0.8, false);
-		draw_connected_cloud(mat, cloud, 0.04, -6, 1.0, true);
+		auto mouse = sf::Mouse::getPosition(window);
+		auto pt_i = mouse_ray_to_point(cloud, mouse.x, mouse.y);
+		std::pair<int, int> pt;
+		if (mouse_ray) {
+			if (pt_i != size_t(-1)) {
+				float ray_scale = scale == 0 ? calc_scale(cloud) : scale;
+				pt = cyl_to_cart(cloud.pts[pt_i], ray_scale);
+				draw_line(mat, ORIGIN_X, ORIGIN_Y, pt.first, pt.second, COLOR_BACKGROUND_GRID);
+			}
+		}
+
+		draw_cloud_bars(mat, cloud, coloring);
+
+		if (point_cloud_display_mode == 2) {
+			draw_connected_cloud(mat, cloud, scale, 0, 0.5, false, coloring);
+			draw_cloud(mat, cloud, scale, 0, 1, true, coloring);
+		}
+		else if (point_cloud_display_mode == 1) {
+			draw_connected_cloud(mat, cloud, scale, 0, 1, true, coloring);
+		}
+		else if (point_cloud_display_mode == 0) {
+			draw_cloud(mat, cloud, scale, 0, 1, true, coloring);
+		}
+
+		draw_point(mat, ORIGIN_X, ORIGIN_Y, color(255, 0, 0), 1.0);
+
+		if (pt_i != size_t(-1) && mouse_ray) {
+			draw_mark(mat, pt.first, pt.second, cloud.pts[pt_i].second);
+		}
 
 		window.draw(sprite);
 		texture.update(mat);
 		window.display();
 	}
 
+	// Cleaning up
 	if (lidar) {
 		rplidar_stop(lidar);
 	}
@@ -153,9 +224,3 @@ int main(int argc, char** argv) {
 	delete[] buffer;
 	return 0;
 }
-#else
-int main(int argc, char** argv) {
-	
-	return 0;
-}
-#endif // WINDOWED_APP
