@@ -48,9 +48,6 @@ int main(int argc, char** argv) {
 
 	// Set RPLIDAR port
 	std::string port = get_arg(argc, argv, "-p");
-	if (argc == 2) {
-		port = std::string(argv[1]);
-	}
 	if (!port.empty() && file.empty()) {
 		lidar = rplidar::RPlidarDriver::CreateDriver();
 		if (!rplidar_launch(lidar, port)) {
@@ -89,6 +86,7 @@ int main(int argc, char** argv) {
 
 	if ((file == "" && port == "") && running) {
 		std::cerr << "ERROR: No valid port or input file specified." << std::endl;
+		running = false;
 	}
 
 	// Main program loop
@@ -126,14 +124,14 @@ int main(int argc, char** argv) {
 					rotate = !rotate;
 				}
 				// Cloud rotation event
-				if (event.key.code == sf::Keyboard::D) {
+				if (event.key.code == sf::Keyboard::Right) {
 					float rotation = 5.0f;
 					if (event.key.control) rotation = 1.0f;
 					if (event.key.shift) rotation = 30.0f;
 					rotate_cloud(cloud, rotation);
 				}
 				// Cloud rotation event
-				if (event.key.code == sf::Keyboard::A) {
+				if (event.key.code == sf::Keyboard::Left) {
 					float rotation = 5.0f;
 					if (event.key.control) rotation = 1.0f;
 					if (event.key.shift) rotation = 30.0f;
@@ -183,19 +181,16 @@ int main(int argc, char** argv) {
 		draw_background(mat, COLOR_BACKGROUND);
 		draw_grid(mat, COLOR_GRID);
 
-
 		auto mouse = sf::Mouse::getPosition(window);
 		auto pt_i = mouse_ray_to_point(cloud, mouse.x, mouse.y);
 		std::pair<int, int> pt;
 		if (mouse_ray) {
 			if (pt_i != size_t(-1)) {
-				pt = cyl_to_cart(cloud.pts[pt_i], scale);
+				float ray_scale = scale == 0 ? calc_scale(cloud) : scale;
+				pt = cyl_to_cart(cloud.pts[pt_i], ray_scale);
 				draw_line(mat, ORIGIN_X, ORIGIN_Y, pt.first, pt.second, COLOR_BACKGROUND_GRID);
 			}
 		}
-
-		auto pt_0 = cyl_to_cart(cloud.pts[cloud.min_idx], scale);
-
 
 		draw_cloud_bars(mat, cloud, coloring);
 

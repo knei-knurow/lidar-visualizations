@@ -27,11 +27,13 @@ bool check_arg_exist(int argc, char** argv, const std::string & arg) {
 
 std::string get_arg(int argc, char** argv, const std::string & arg) {
 	auto it = std::find(argv, argv + argc, arg);
-	if (it != argv + argc && it + 1 != argv + argc) {
-		std::string s(*(it + 1));
+	if (it != argv + argc) {
 		(*it)[0] = '\0';
-		(*(it + 1))[0] = '\0';
-		return s;
+		if (it + 1 != argv + argc) {
+			std::string s(*(it + 1));
+			(*(it + 1))[0] = '\0';
+			return s;
+		}
 	}
 	return "";
 }
@@ -59,26 +61,26 @@ void print_help() {
 	std::cout << "\tlidar [options]" << std::endl;
 	std::cout << std::endl;
 	std::cout << "Options:" << std::endl;
-	std::cout << "\t-f <arg>\tfile with lines containing angle [deg] and distance [mm] separated by whitespaces" << std::endl;
-	std::cout << "\t-h      \tShow this message" << std::endl;
-	std::cout << "\t-o <arg>\tOutput directory" << std::endl;
-	std::cout << "\t-p <arg>\tRPLidar port" << std::endl;
-	std::cout << "\t-r      \tDisable mouse ray" << std::endl;
-	std::cout << "\t-s <arg>\tSelect display scale (1mm -> 1px for scale = 1.0)" << std::endl;
-	std::cout << "\t-S <arg>\tSelect scenario" << std::endl;
+	std::cout << "\t-f <arg>  file with lines containing angle [deg] and distance [mm] separated by whitespaces" << std::endl;
+	std::cout << "\t-h        Show this message" << std::endl;
+	std::cout << "\t-o <arg>  Output directory" << std::endl;
+	std::cout << "\t-p <arg>  RPLidar port" << std::endl;
+	std::cout << "\t-r        Disable mouse ray" << std::endl;
+	std::cout << "\t-s <arg>  Select display scale (1mm -> 1px for scale = 1.0; set 0 to autoscale)" << std::endl;
+	std::cout << "\t-S <arg>  Select scenario" << std::endl;
 	std::cout << std::endl;
 	std::cout << "Scenarios:" << std::endl;
 	std::cout << "\t0\tsave point clouds from each frame as batched TXT file" << std::endl;
 	std::cout << std::endl;
 	std::cout << "GUI Mode Keyboard Shortcuts:" << std::endl;
-	std::cout << "\tT\tsave point cloud as TXT" << std::endl;
-	std::cout << "\tS\tsave screenshot" << std::endl;
-	std::cout << "\tUp/Down\tscale displayed cloud (faster with shift, slower with ctrl)" << std::endl;
-	std::cout << "\tA/D\trotate cloud (faster with shift, slower with ctrl; only with files)" << std::endl;
-	std::cout << "\tP\trotation on/off (only with files)" << std::endl;
-	std::cout << "\tC\tswitch color maps" << std::endl;
-	std::cout << "\tM\tswitch point cloud display modes" << std::endl;
-	std::cout << "\tR\tmouse ray display on/off" << std::endl;
+	std::cout << "\tT           save point cloud as TXT" << std::endl;
+	std::cout << "\tS           save screenshot" << std::endl;
+	std::cout << "\tUp/Down     scale displayed cloud (faster with shift, slower with ctrl)" << std::endl;
+	std::cout << "\tLeft/Right  rotate cloud (faster with shift, slower with ctrl; only with files)" << std::endl;
+	std::cout << "\tP           rotation on/off (only with files)" << std::endl;
+	std::cout << "\tC           switch color maps" << std::endl;
+	std::cout << "\tM           switch point cloud display modes" << std::endl;
+	std::cout << "\tR           mouse ray display on/off" << std::endl;
 }
 
 //
@@ -94,7 +96,6 @@ size_t mouse_ray_to_point(const Cloud& cloud, int x, int y) {
 	if (angle < 0) {
 		angle += 360.0f;
 	}
-
 	for (int i = 1; i < cloud.size; i++) {
 		if (cloud.pts[i - 1].first <= angle && cloud.pts[i].first >= angle) {
 			return i;
@@ -214,12 +215,6 @@ void draw_point(uint8_t* mat, int x, int y, color c, float lightness) {
 	c.r *= lightness;
 	c.g *= lightness;
 	c.b *= lightness;
-
-	//draw_pixel(mat, x, y - 1, c);
-	//draw_pixel(mat, x - 1, y, c);
-	//draw_pixel(mat, x + 0, y, c);
-	//draw_pixel(mat, x + 1, y, c);
-	//draw_pixel(mat, x, y + 1, c);
 
 	for (auto cx : { -1, 0, 1 }) {
 		for (auto cy : { -1, 0, 1 }) {
@@ -433,7 +428,7 @@ void draw_mark(uint8_t* mat, int x, int y, float val, color c) {
 	x += -12;
 	y += 5;
 	for (int ch : str) {
-		if (ch == '.') ch = CHAR_DOT;
+		if (ch == '.') ch = 10;
 		else ch -= '0';
 
 		for (int cy = 0; cy < CHAR_HEIGHT; cy++) {

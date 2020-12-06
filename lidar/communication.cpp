@@ -67,6 +67,7 @@ bool rplidar_print_scan_modes(rplidar::RPlidarDriver* lidar, _u16* scan_mode, _u
 	}
 	return true;
 }
+
 void rplidar_print_scan_info(rplidar_response_measurement_node_hq_t* buffer, size_t count) {
 	int zero_quality = 0, avg_quality = 0, min_dist = 10000000, max_dist = 0;
 	for (size_t i = 0; i < count; i++) {
