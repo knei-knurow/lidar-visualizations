@@ -11,6 +11,8 @@
 #include <SFML\Graphics.hpp>
 #include "app.h"
 #include "communication.h"
+#include "scenarios.h"
+#include <memory>
 
 int main(int argc, char** argv) {
 	using namespace rp::standalone;
@@ -20,6 +22,7 @@ int main(int argc, char** argv) {
 	unsigned coloring = 0;
 	unsigned point_cloud_display_mode = 2;
 	Cloud cloud;
+	std::unique_ptr<Scenario> scenario;
 	rplidar::RPlidarDriver * lidar = nullptr;
 	rplidar_response_measurement_node_hq_t * buffer = nullptr;
 	uint8_t * mat = nullptr;
@@ -57,11 +60,11 @@ int main(int argc, char** argv) {
 	}
 	
 	// Set scenario - general program behaviour
-	std::string scenario = get_arg(argc, argv, "-S");
-	if (scenario == "0") {
-		// TODO
+	std::string scenario_name = get_arg(argc, argv, "-S");
+	if (scenario_name == "0") {
+		scenario = std::make_unique<SaveSeriesScenario>(output_dir);
 	}
-	else if (!scenario.empty()) {
+	else if (!scenario_name.empty()) {
 		std::cerr << "ERROR: Unknown scenario. Running with default settings." << std::endl;
 	}
 
@@ -172,6 +175,10 @@ int main(int argc, char** argv) {
 			size_t count;
 			if (!rplidar_scan(lidar, buffer, count, false)) break;
 			load_cloud_from_buffer(buffer, count, cloud);
+		}
+
+		if (scenario) {
+			scenario->update(mat, cloud);
 		}
 
 		if (rotate) {
