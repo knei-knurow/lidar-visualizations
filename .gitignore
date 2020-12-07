@@ -6,6 +6,7 @@ Release
 *.xcf
 rplidar-sdk
 rplidar_sdk
+clouds
 stm32-discovery/workspace/.metadata
 stm32-discovery/workspace/disp5/.metadata
 stm32-discovery/workspace/disp5/.settings
