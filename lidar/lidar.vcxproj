@@ -88,8 +88,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="cloud-grabbers.cpp" />
     <ClCompile Include="communication.cpp" />
     <ClCompile Include="app.cpp" />
+    <ClCompile Include="guis.cpp" />
     <ClCompile Include="save_series_scenario.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
@@ -97,6 +99,8 @@
     <ClInclude Include="characters.h" />
     <ClInclude Include="communication.h" />
     <ClInclude Include="app.h" />
+    <ClInclude Include="cloud-grabbers.h" />
+    <ClInclude Include="guis.h" />
     <ClInclude Include="scenarios.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

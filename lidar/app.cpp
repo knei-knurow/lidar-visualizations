@@ -1,3 +1,29 @@
+#include "app.h"
+
+
+App::App(int argc, char** argv) {
+	running_ = true;
+
+	cloud_grabber_ptr_ = std::make_unique<CloudFileGrabber>("../clouds/c0a.txt");
+
+	SFMLGUISettings settings;
+
+	gui_ptr_ = std::make_unique<SFMLGUI>(settings);
+}
+
+App::~App() {
+}
+
+int App::run() {
+	while (running_) {
+		auto status = cloud_grabber_ptr_->read(cloud_);
+		running_ = gui_ptr_->update(cloud_);
+	}
+	return 0;
+}
+
+
+/*
 #include <string>
 #include <iostream>
 #include <fstream>
@@ -9,9 +35,10 @@
 #include <SFML\System.hpp>
 #include <SFML\Window.hpp>
 #include <SFML\Graphics.hpp>
-#include "app.h"
+
 #include "characters.h"
 #include <rplidar.h>
+
 
 //
 // Command line arguments parsing
@@ -462,3 +489,4 @@ void rotate_cloud(Cloud& cloud, float angle) {
 		if (i.first >= 360) i.first -= 360;
 	}
 }
+*/

@@ -1,3 +1,5 @@
+#include "app.h"
+
 #include <string>
 #include <iostream>
 #include <fstream>
@@ -15,6 +17,10 @@
 #include <memory>
 
 int main(int argc, char** argv) {
+	return App(argc, argv).run();
+	/*
+
+
 	using namespace rp::standalone;
 	bool running = true;
 	bool rotate = false;
@@ -26,7 +32,7 @@ int main(int argc, char** argv) {
 	rplidar::RPlidarDriver * lidar = nullptr;
 	rplidar_response_measurement_node_hq_t * buffer = nullptr;
 	uint8_t * mat = nullptr;
-	
+
 	// Print help
 	if (check_arg_exist(argc, argv, "-h") || argc == 1) {
 		print_help();
@@ -230,4 +236,5 @@ int main(int argc, char** argv) {
 	delete[] mat;
 	delete[] buffer;
 	return 0;
+	*/
 }

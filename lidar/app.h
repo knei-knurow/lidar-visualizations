@@ -1,4 +1,24 @@
 #pragma once
+#include "guis.h"
+#include "cloud-grabbers.h"
+
+class App {
+public:
+	App(int argc, char ** argv);
+	~App();
+
+	int run();
+
+private:
+	bool running_;
+	Cloud cloud_;
+	std::unique_ptr<CloudGrabber> cloud_grabber_ptr_;
+	std::unique_ptr<GUI> gui_ptr_;
+	//std::unique_ptr<Scenario> scenario_ptr_;
+};
+
+/*
+
 #include <string>
 #include <iostream>
 #include <fstream>
@@ -12,6 +32,8 @@
 #include <SFML\Window.hpp>
 #include <SFML\Graphics.hpp>
 #include <rplidar.h>
+
+
 
 const int WIDTH = 1280;
 const int HEIGHT = 720;
@@ -104,3 +126,5 @@ std::pair<int, int> cyl_to_cart(std::pair<float, float> pt, float k = 1);
 float calc_scale(const Cloud& cloud);
 
 void rotate_cloud(Cloud& cloud, float angle);
+
+*/

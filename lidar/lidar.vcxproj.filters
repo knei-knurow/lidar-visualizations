@@ -19,6 +19,18 @@
     <Filter Include="Header Files\scenarios">
       <UniqueIdentifier>{68e7c4a2-3d4c-420f-a3d7-56db9ba113f4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\cloud-grabbers">
+      <UniqueIdentifier>{68bb6ca8-7328-4be8-9068-3f02f552be7a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\cloud-grabbers">
+      <UniqueIdentifier>{2de7de27-505c-4757-9f1c-462432619079}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\cloud-writers">
+      <UniqueIdentifier>{97ace8ab-693b-496f-9c86-2ef9e0750941}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\guis">
+      <UniqueIdentifier>{2a101407-64a9-4083-bb23-d26019e775e0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="communication.cpp">
@@ -33,6 +45,12 @@
     <ClCompile Include="save_series_scenario.cpp">
       <Filter>Source Files\scenarios</Filter>
     </ClCompile>
+    <ClCompile Include="cloud-grabbers.cpp">
+      <Filter>Source Files\cloud-grabbers</Filter>
+    </ClCompile>
+    <ClCompile Include="guis.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="communication.h">
@@ -46,6 +64,12 @@
     </ClInclude>
     <ClInclude Include="scenarios.h">
       <Filter>Header Files\scenarios</Filter>
+    </ClInclude>
+    <ClInclude Include="cloud-grabbers.h">
+      <Filter>Header Files\cloud-grabbers</Filter>
+    </ClInclude>
+    <ClInclude Include="guis.h">
+      <Filter>Header Files\guis</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

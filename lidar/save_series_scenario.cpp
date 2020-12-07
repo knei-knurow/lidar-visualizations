@@ -1,3 +1,4 @@
+/*
 #include <chrono>
 #include <fstream>
 #include "app.h"
@@ -41,3 +42,4 @@ bool SaveSeriesScenario::update(uint8_t* render_buffer, Cloud& cloud) {
 
 	return file_.good();
 }
+*/
