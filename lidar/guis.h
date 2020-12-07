@@ -30,7 +30,7 @@ struct SFMLGUISettings {
 		FROM_ANGLE,
 		FROM_DIST,
 
-		COLORMAP_SIZE,
+		COLORMAP_COUNT,
 	};
 
 	enum PtsDispayMode {
@@ -38,7 +38,7 @@ struct SFMLGUISettings {
 		DOTS,
 		LINES,
 
-		PTS_DIPLAY_MODE_SIZE,
+		PTS_DISPLAY_MODE_COUNT,
 	};
 
 	enum { SCALE_AUTO = 0 };
@@ -54,7 +54,7 @@ struct SFMLGUISettings {
 	float sleep_time_ms = 1000.0f / 30.0f;
 
 	Color color_background = Color(16, 16, 24);
-	Color color_grid = Color(36, 36, 48);
+	Color color_grid = Color(20, 20, 34);
 
 	bool render_mouse_ray = true;
 	bool render_grid = true;
@@ -75,13 +75,15 @@ private:
 	void render_grid();
 	void render_cloud_bars(const Cloud& cloud);
 	void render_cloud(const Cloud& cloud, float lightness = 1.0f);
-	void render_connected_cloud(const Cloud& cloud);
+	void render_connected_cloud(const Cloud& cloud, float lightness = 1.0f, bool render_points = true);
 	void render_point(int x, int y, const Color& color);
+	void render_line(float x0, float y0, float x1, float y1, const Color& color);
+	void render_line(float x0, float y0, float x1, float y1, float max_dist, SFMLGUISettings::Colormap colormap, float lightness);
 	void render_mark();
 
 	bool save_screenshot();
 
-	float calc_scale(const Cloud& cloud);
+	float calc_scale(float max_dist);
 	Color calc_color_from_angle(float v, float lightness = 1.0f);
 	Color calc_color_from_dist(float dist, float max, float lightness = 1.0f);
 
