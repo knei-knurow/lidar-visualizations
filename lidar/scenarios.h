@@ -4,9 +4,14 @@
 #include <chrono>
 #include "app.h"
 
+enum class ScenarioType {
+	IDLE,
+	SCENARIO_TYPE_COUNT,
+};
+
 class Scenario {
 public:
-	virtual bool update(uint8_t * render_buffer, Cloud& cloud) = 0;
+	virtual bool update(Cloud& cloud) = 0;
 	inline virtual int get_status() const { return status_; }
 protected:
 	int status_;

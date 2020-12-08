@@ -14,20 +14,20 @@ PointCart PointCyl::to_cart(float scale, float origin_x, float origin_y) const {
 
 
 #ifdef USING_RPLIDAR
-CloudLidarPortGrabber::CloudLidarPortGrabber(std::string portname, int baudrate)
-	: portname_(portname), baudrate_(baudrate) {
+CloudRPLIDARPortGrabber::CloudRPLIDARPortGrabber(std::string portname, int baudrate, RPLIDARScanModes scan_mode)
+	: portname_(portname), baudrate_(baudrate), scan_mode_(scan_mode) {
 	driver_ = rplidar::RPlidarDriver::CreateDriver();
 	buffer_size_ = rplidar::RPlidarDriver::MAX_SCAN_NODES;
 	buffer_ = new rplidar_response_measurement_node_hq_t[buffer_size_];
 	launch();
 }
 
-CloudLidarPortGrabber::~CloudLidarPortGrabber() {
+CloudRPLIDARPortGrabber::~CloudRPLIDARPortGrabber() {
 	stop();
 	delete[] buffer_;
 }
 
-bool CloudLidarPortGrabber::read(Cloud& cloud) {
+bool CloudRPLIDARPortGrabber::read(Cloud& cloud) {
 	scan(false);
 	if (!status_) return false;
 
@@ -55,7 +55,7 @@ bool CloudLidarPortGrabber::read(Cloud& cloud) {
 	return status_;
 }
 
-bool CloudLidarPortGrabber::print_info() {
+bool CloudRPLIDARPortGrabber::print_info() {
 	if (!status_) return false;
 
 	rplidar_response_device_info_t lidar_info;
@@ -77,7 +77,7 @@ bool CloudLidarPortGrabber::print_info() {
 	return true;
 }
 
-bool CloudLidarPortGrabber::print_health() {
+bool CloudRPLIDARPortGrabber::print_health() {
 	if (!status_) return false;
 
 	rplidar_response_device_health_t lidar_health;
@@ -95,7 +95,7 @@ bool CloudLidarPortGrabber::print_health() {
 	return true;
 }
 
-bool CloudLidarPortGrabber::print_scan_modes(std::vector<rplidar::RplidarScanMode>& scan_modes, _u16& default_mode) {
+bool CloudRPLIDARPortGrabber::print_scan_modes(std::vector<rplidar::RplidarScanMode>& scan_modes, _u16& default_mode) {
 	if (!status_) return false;
 
 	scan_modes.clear();
@@ -117,7 +117,7 @@ bool CloudLidarPortGrabber::print_scan_modes(std::vector<rplidar::RplidarScanMod
 	return true;
 }
 
-void CloudLidarPortGrabber::print_scan_info() const {
+void CloudRPLIDARPortGrabber::print_scan_info() const {
 	int zero_quality = 0, avg_quality = 0, min_dist = 10000000, max_dist = 0;
 	for (size_t i = 0; i < buffer_size_; i++) {
 		if (buffer_[i].quality == 0) zero_quality++;
@@ -134,7 +134,7 @@ void CloudLidarPortGrabber::print_scan_info() const {
 		<< ", avg. quality: " << avg_quality << std::endl;
 }
 
-bool CloudLidarPortGrabber::launch(RPLIDARScanModes scan_mode) {
+bool CloudRPLIDARPortGrabber::launch() {
 	if (!status_) return false;
 
 	std::cout << "LIDAR connection:" << std::endl;
@@ -159,7 +159,7 @@ bool CloudLidarPortGrabber::launch(RPLIDARScanModes scan_mode) {
 		status_ = false;
 		return false;
 	}
-	res = driver_->startScanExpress(false, _u16(scan_mode));
+	res = driver_->startScanExpress(false, _u16(scan_mode_));
 	if (IS_FAIL(res)) {
 		std::cout << "ERROR: Unable to start scanning." << std::endl;
 		status_ = false;
@@ -168,7 +168,7 @@ bool CloudLidarPortGrabber::launch(RPLIDARScanModes scan_mode) {
 	return true;
 }
 
-bool CloudLidarPortGrabber::scan(bool verbose) {
+bool CloudRPLIDARPortGrabber::scan(bool verbose) {
 	size_t buffer_size;
 	auto res = driver_->grabScanDataHq(buffer_, buffer_size);
 	buffer_size_ = buffer_size;
@@ -182,7 +182,7 @@ bool CloudLidarPortGrabber::scan(bool verbose) {
 	return true;
 }
 
-void CloudLidarPortGrabber::stop() {
+void CloudRPLIDARPortGrabber::stop() {
 	std::cout << "Stopping motor and deallocating LIDAR driver." << std::endl;
 	auto res = driver_->stopMotor();
 	if (IS_FAIL(res)) {
@@ -196,6 +196,7 @@ void CloudLidarPortGrabber::stop() {
 
 CloudFileGrabber::CloudFileGrabber(const std::string& filename) {
 	filename_ = filename;
+	status_ = std::ifstream(filename_).good();
 }
 
 bool CloudFileGrabber::read(Cloud& cloud) {

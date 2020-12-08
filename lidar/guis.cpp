@@ -31,8 +31,11 @@ bool SFMLGUI::update(const Cloud& cloud) {
 
 	handle_input();
 
-	if (sets_.scale == 0)
-		sets_.scale = calc_scale(cloud.max);
+	if (sets_.autoscale) {
+		auto new_scale = calc_scale(cloud.max);
+		if (new_scale >= sets_.scale * 1.1 || new_scale <= sets_.scale * 0.9)
+			sets_.scale = new_scale;
+	}
 
 	window_.clear(sets_.color_background);
 	if (sets_.render_grid) {

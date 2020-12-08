@@ -35,6 +35,14 @@ struct Cloud {
 	size_t size = 0;
 };
 
+enum class CloudGrabberType {
+#ifdef USING_RPLIDAR
+	RPLIDAR_PORT,
+	FILE,
+	FILE_SERIES,
+#endif
+};
+
 class CloudGrabber {
 public:
 	CloudGrabber() : status_(true) {};
@@ -48,7 +56,7 @@ protected:
 
 
 #ifdef USING_RPLIDAR
-enum RPLIDARScanModes {
+enum class RPLIDARScanModes {
 	STANDARD,
 	EXPRESS,
 	BOOST,
@@ -57,24 +65,25 @@ enum RPLIDARScanModes {
 	RPLIDAR_SCAN_MODES_COUNT,
 };
 
-class CloudLidarPortGrabber
+class CloudRPLIDARPortGrabber
 	: public CloudGrabber {
 public:
-	CloudLidarPortGrabber(std::string portname, int baudrate);
-	virtual ~CloudLidarPortGrabber();
+	CloudRPLIDARPortGrabber(std::string portname, int baudrate, RPLIDARScanModes scan_mode = RPLIDARScanModes::SENSITIVITY);
+	virtual ~CloudRPLIDARPortGrabber();
 	virtual bool read(Cloud& cloud);
 
 	bool print_info();
 	bool print_health();
 	bool print_scan_modes(std::vector<rplidar::RplidarScanMode>& scan_modes, _u16& default_mode);
 	void print_scan_info() const;
-	bool launch(RPLIDARScanModes scan_mode = SENSITIVITY);
+	bool launch();
 	bool scan(bool verbose = false);
 	void stop();
 
 private:
 	const std::string portname_;
 	const int baudrate_;
+	const RPLIDARScanModes scan_mode_;
 	rplidar::RPlidarDriver* driver_;
 	rplidar_response_measurement_node_hq_t* buffer_;
 	size_t buffer_size_;

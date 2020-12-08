@@ -1,20 +1,28 @@
 #pragma once
 #include "guis.h"
 #include "cloud-grabbers.h"
+#include "scenarios.h"
+
 
 class App {
 public:
-	App(int argc, char ** argv);
+	enum class Mode {
+		FILE_PREVIEW,
+		RPLIDAR_PORT_PREVIEW,
+	};
+
+	App(std::vector<std::string>& args);
 	~App();
 
 	int run();
-	int run_rplidar_live();
+	void print_help();
 private:
+	bool parse_args(std::vector<std::string>& args);
+
 	bool running_;
-	Cloud cloud_;
 	std::unique_ptr<CloudGrabber> cloud_grabber_ptr_;
+	std::unique_ptr<Scenario> scenario_ptr_;
 	std::unique_ptr<GUI> gui_ptr_;
-	//std::unique_ptr<Scenario> scenario_ptr_;
 };
 
 /*

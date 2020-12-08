@@ -17,12 +17,12 @@
 #include <memory>
 
 int main(int argc, char** argv) {
-	
-	{
-		App a(argc, argv);
-		a.run();
+	std::vector<std::string> args;
+	for (int i = 1; i < argc; i++) {
+		args.push_back(std::string(argv[i]));
 	}
-	return 0;
+
+	return App(args).run();
 	/*
 
 

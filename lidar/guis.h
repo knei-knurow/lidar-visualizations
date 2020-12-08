@@ -7,6 +7,14 @@
 #include <SFML/Graphics.hpp>
 #endif
 
+enum class GUIType {
+	TERMINAL,
+#ifdef USING_SFML
+	SFML,
+#endif
+	GUI_TYPE_COUNT,
+};
+
 class GUI {
 public:
 	virtual bool update(const Cloud & cloud) = 0;
@@ -40,15 +48,14 @@ struct SFMLGUISettings {
 
 		PTS_DISPLAY_MODE_COUNT,
 	};
-
-	enum { SCALE_AUTO = 0 };
 	
 	bool running = true;
 	unsigned width = 1280;
 	unsigned height = 720;
 	int origin_x = width / 2;
 	int origin_y = height / 2;
-	float scale = SCALE_AUTO;
+	float scale = 0.2;
+	bool autoscale = true;
 	Colormap colormap = FROM_ANGLE;
 	PtsDispayMode pts_display_mode = DOTS_LINES;
 	float sleep_time_ms = 1000.0f / 30.0f;
