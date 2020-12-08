@@ -79,7 +79,6 @@ private:
 	void render_point(int x, int y, const Color& color);
 	void render_line(float x0, float y0, float x1, float y1, const Color& color);
 	void render_line(float x0, float y0, float x1, float y1, float max_dist, SFMLGUISettings::Colormap colormap, float lightness);
-	void render_mark();
 
 	bool save_screenshot();
 

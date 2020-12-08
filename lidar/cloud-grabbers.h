@@ -37,6 +37,7 @@ struct Cloud {
 
 class CloudGrabber {
 public:
+	CloudGrabber() : status_(true) {};
 	virtual bool read(Cloud& cloud) = 0;
 	virtual bool get_status() const { return status_; }
 

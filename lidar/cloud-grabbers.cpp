@@ -241,7 +241,6 @@ bool CloudFileGrabber::read(Cloud& cloud) {
 	return status_;
 }
 
-
 CloudFileSeriesGrabber::CloudFileSeriesGrabber(const std::string& filename) {
 	// TODO
 }

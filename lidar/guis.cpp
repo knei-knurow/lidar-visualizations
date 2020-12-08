@@ -8,7 +8,7 @@ bool TerminalGUI::update(const Cloud& cloud) {
 	return true;
 }
 
-
+#ifdef USING_SFML
 SFMLGUI::SFMLGUI(const SFMLGUISettings& settings) {
 	sets_ = settings;
 	
@@ -83,6 +83,10 @@ void SFMLGUI::handle_input() {
 				sets_.origin_x -= 5;
 			if (event.key.code == sf::Keyboard::Right)
 				sets_.origin_x += 5;
+			if (event.key.code == sf::Keyboard::PageUp)
+				sets_.scale *= 0.9;
+			if (event.key.code == sf::Keyboard::PageDown)
+				sets_.scale *= 1.1;
 			if (event.key.code == sf::Keyboard::R)
 				sets_.render_mouse_ray = !sets_.render_mouse_ray;
 			if (event.key.code == sf::Keyboard::C)
@@ -93,6 +97,13 @@ void SFMLGUI::handle_input() {
 				sets_.pts_display_mode = SFMLGUISettings::PtsDispayMode(
 					(sets_.pts_display_mode + 1) % SFMLGUISettings::PTS_DISPLAY_MODE_COUNT
 				);
+		}
+
+		if (event.type == sf::Event::MouseWheelScrolled) {
+			if (event.mouseWheelScroll.delta > 0)
+				sets_.scale *= 1.25;
+			else if (event.mouseWheelScroll.delta < 0)
+				sets_.scale *= 0.8;
 		}
 
 			//// Screenshot saving event
@@ -155,13 +166,14 @@ void SFMLGUI::handle_input() {
 }
 
 void SFMLGUI::render_grid() {
-	for (int i = 0; i < 30; i++) {
+	for (int i = 0; i <= 30; i++) {
 		auto circle = sf::CircleShape(1000 * i * sets_.scale, 64);
 		circle.setOrigin(circle.getRadius() - 1, circle.getRadius() - 1);
 		circle.setPosition(sets_.origin_x, sets_.origin_y);
 		circle.setFillColor(Color::Transparent);
 		circle.setOutlineColor(sets_.color_grid);
-		circle.setOutlineThickness(1);
+		if (i % 10 == 0) circle.setOutlineThickness(4);
+		else circle.setOutlineThickness(1);
 		window_.draw(circle);
 	}
 }
@@ -264,10 +276,6 @@ void SFMLGUI::render_line(float x0, float y0, float x1, float y1, float max_dist
 	}
 }
 
-void SFMLGUI::render_mark() {
-
-}
-
 bool SFMLGUI::save_screenshot() {
 	return false;
 }
@@ -344,3 +352,4 @@ Color SFMLGUI::calc_color_from_dist(float dist, float max, float lightness) {
 		255
 	);
 }
+#endif
