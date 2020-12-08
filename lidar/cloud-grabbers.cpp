@@ -194,8 +194,9 @@ void CloudRPLIDARPortGrabber::stop() {
 }
 #endif
 
-CloudFileGrabber::CloudFileGrabber(const std::string& filename) {
+CloudFileGrabber::CloudFileGrabber(const std::string& filename, float rot_angle) {
 	filename_ = filename;
+	rot_angle_ = rot_angle;
 	status_ = std::ifstream(filename_).good();
 }
 
@@ -232,9 +233,20 @@ bool CloudFileGrabber::read(Cloud& cloud) {
 			std::cerr << "Error: File does not contain a valid cloud." << std::endl;
 			status_ = false;
 		}
+		cloud = cloud_;
 	}
-
-	cloud = cloud_;
+	else if (rot_angle_ != 0.0f) {
+		for (int i = 0; i < cloud.size; i++) {
+			cloud.pts_cyl[i].angle += rot_angle_;
+			if (cloud.pts_cyl[i].angle >= 360.0f) {
+				cloud.pts_cyl[i].angle -= 360.0f;
+			}
+			else if (cloud.pts_cyl[i].angle < 0.0f) {
+				cloud.pts_cyl[i].angle += 360.0f;
+			}
+			cloud.pts_cart[i] = cloud.pts_cyl[i].to_cart();
+		}
+	}
 
 	return status_;
 }

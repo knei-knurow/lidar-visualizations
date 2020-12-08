@@ -188,7 +188,7 @@ bool App::parse_args(std::vector<std::string>& args) {
 		if (!cloud_grabber_ptr_->get_status()) cloud_grabber_ptr_.release();
 	}
 	else if (!cloud_filename.empty()) {
-		cloud_grabber_ptr_ = std::make_unique<CloudFileGrabber>(cloud_filename);
+		cloud_grabber_ptr_ = std::make_unique<CloudFileGrabber>(cloud_filename, 0.2);
 		if (!cloud_grabber_ptr_->get_status()) cloud_grabber_ptr_.release();
 	}
 

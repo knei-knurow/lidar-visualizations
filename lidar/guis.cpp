@@ -103,10 +103,18 @@ void SFMLGUI::handle_input() {
 		}
 
 		if (event.type == sf::Event::MouseWheelScrolled) {
+			sets_.autoscale = false;
 			if (event.mouseWheelScroll.delta > 0)
 				sets_.scale *= 1.25;
 			else if (event.mouseWheelScroll.delta < 0)
 				sets_.scale *= 0.8;
+		}
+		else if (event.type == sf::Event::MouseButtonPressed) {
+			if (event.key.code == sf::Mouse::Middle) {
+				sets_.autoscale = true;
+				sets_.origin_y = sets_.height / 2;
+				sets_.origin_x = sets_.width / 2;
+			}
 		}
 
 			//// Screenshot saving event

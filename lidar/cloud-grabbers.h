@@ -94,11 +94,12 @@ private:
 class CloudFileGrabber 
 	: public CloudGrabber {
 public:
-	CloudFileGrabber(const std::string& filename);
+	CloudFileGrabber(const std::string& filename, float rot_angle_ = 0.0f);
 	virtual bool read(Cloud& cloud);
 
 private:
 	std::string filename_;
+	float rot_angle_;
 	Cloud cloud_;
 };
 
