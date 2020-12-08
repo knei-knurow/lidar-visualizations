@@ -95,12 +95,11 @@ bool CloudLidarPortGrabber::print_health() {
 	return true;
 }
 
-bool CloudLidarPortGrabber::print_scan_modes(_u16 preffered_mode_id) {
+bool CloudLidarPortGrabber::print_scan_modes(std::vector<rplidar::RplidarScanMode>& scan_modes, _u16& default_mode) {
 	if (!status_) return false;
 
-	std::vector<rplidar::RplidarScanMode> scan_modes;
-	_u16 current_scan_mode;
-	auto res = driver_->getTypicalScanMode(current_scan_mode);
+	scan_modes.clear();
+	auto res = driver_->getTypicalScanMode(default_mode);
 	res = driver_->getAllSupportedScanModes(scan_modes);
 	if (IS_FAIL(res)) {
 		std::cerr << "ERROR: Unable to get device scan modes response." << std::endl;
@@ -110,11 +109,7 @@ bool CloudLidarPortGrabber::print_scan_modes(_u16 preffered_mode_id) {
 	for (const auto& scan_mode : scan_modes) {
 		std::cout << "  ";
 		std::cout << scan_mode.scan_mode << " (" << scan_mode.id;
-		if (scan_mode.id == current_scan_mode) std::cout << ", DEFAULT";
-		if (preffered_mode_id == scan_mode.id) {
-			std::cout << ", SELECTED";
-			current_scan_mode = preffered_mode_id;
-		}
+		if (scan_mode.id == default_mode) std::cout << ", DEFAULT";
 		std::cout << "), "
 			<< "sample time: " << scan_mode.us_per_sample << "us, "
 			<< "max distance: " << scan_mode.max_distance << "m" << std::endl;
@@ -139,7 +134,7 @@ void CloudLidarPortGrabber::print_scan_info() const {
 		<< ", avg. quality: " << avg_quality << std::endl;
 }
 
-bool CloudLidarPortGrabber::launch(_u16 scan_mode) {
+bool CloudLidarPortGrabber::launch(RPLIDARScanModes scan_mode) {
 	if (!status_) return false;
 
 	std::cout << "LIDAR connection:" << std::endl;
@@ -154,7 +149,9 @@ bool CloudLidarPortGrabber::launch(_u16 scan_mode) {
 	std::cout << "Connection established." << std::endl;
 	print_info();
 	print_health();
-	print_scan_modes();
+	std::vector<rplidar::RplidarScanMode> scan_modes;
+	_u16 mode;
+	print_scan_modes(scan_modes, mode);
 	std::cout << "Statring motor." << std::endl;
 	res = driver_->startMotor();
 	if (IS_FAIL(res)) {
@@ -162,7 +159,7 @@ bool CloudLidarPortGrabber::launch(_u16 scan_mode) {
 		status_ = false;
 		return false;
 	}
-	res = driver_->startScanExpress(false, scan_mode);
+	res = driver_->startScanExpress(false, _u16(scan_mode));
 	if (IS_FAIL(res)) {
 		std::cout << "ERROR: Unable to start scanning." << std::endl;
 		status_ = false;

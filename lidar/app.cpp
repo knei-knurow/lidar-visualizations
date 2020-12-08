@@ -4,7 +4,8 @@
 App::App(int argc, char** argv) {
 	running_ = true;
 
-	cloud_grabber_ptr_ = std::make_unique<CloudFileGrabber>("../clouds/c0a.txt");
+	cloud_grabber_ptr_ = std::make_unique<CloudLidarPortGrabber>("COM3", 256000);
+	//cloud_grabber_ptr_ = std::make_unique<CloudFileGrabber>("../clouds/c0a.txt");
 
 	SFMLGUISettings settings;
 
@@ -22,6 +23,9 @@ int App::run() {
 	return 0;
 }
 
+int App::run_rplidar_live() {
+	return 0;
+}
 
 /*
 #include <string>

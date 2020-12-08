@@ -38,6 +38,7 @@ struct Cloud {
 class CloudGrabber {
 public:
 	CloudGrabber() : status_(true) {};
+	virtual ~CloudGrabber() {};
 	virtual bool read(Cloud& cloud) = 0;
 	virtual bool get_status() const { return status_; }
 
@@ -47,18 +48,27 @@ protected:
 
 
 #ifdef USING_RPLIDAR
+enum RPLIDARScanModes {
+	STANDARD,
+	EXPRESS,
+	BOOST,
+	SENSITIVITY,
+	STABILITY,
+	RPLIDAR_SCAN_MODES_COUNT,
+};
+
 class CloudLidarPortGrabber
 	: public CloudGrabber {
 public:
 	CloudLidarPortGrabber(std::string portname, int baudrate);
-	~CloudLidarPortGrabber();
+	virtual ~CloudLidarPortGrabber();
 	virtual bool read(Cloud& cloud);
 
 	bool print_info();
 	bool print_health();
-	bool print_scan_modes(_u16 preffered_mode_id = -1);
+	bool print_scan_modes(std::vector<rplidar::RplidarScanMode>& scan_modes, _u16& default_mode);
 	void print_scan_info() const;
-	bool launch(_u16 scan_mode = -1);
+	bool launch(RPLIDARScanModes scan_mode = SENSITIVITY);
 	bool scan(bool verbose = false);
 	void stop();
 

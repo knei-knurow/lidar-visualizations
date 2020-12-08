@@ -17,7 +17,12 @@
 #include <memory>
 
 int main(int argc, char** argv) {
-	return App(argc, argv).run();
+	
+	{
+		App a(argc, argv);
+		a.run();
+	}
+	return 0;
 	/*
 
 

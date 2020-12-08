@@ -8,7 +8,7 @@ public:
 	~App();
 
 	int run();
-
+	int run_rplidar_live();
 private:
 	bool running_;
 	Cloud cloud_;
