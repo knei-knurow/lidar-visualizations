@@ -192,6 +192,10 @@ bool App::parse_args(std::vector<std::string>& args) {
 		if (!cloud_grabber_ptr_->get_status()) cloud_grabber_ptr_.release();
 	}
 
+	if (!cloud_grabber_ptr_ && !gui_ptr_ && !scenario_ptr_) {
+		return false;
+	}
+
 	if (gui_type == GUIType::TERMINAL) {
 		gui_ptr_ = std::make_unique<TerminalGUI>();
 	}
@@ -200,9 +204,6 @@ bool App::parse_args(std::vector<std::string>& args) {
 		gui_ptr_ = std::make_unique<SFMLGUI>(sfml_settings);
 	}
 
-	if (!cloud_grabber_ptr_ && !gui_ptr_ && !scenario_ptr_) {
-		return false;
-	}
 	return true;
 }
 

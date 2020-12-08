@@ -152,6 +152,7 @@ bool CloudRPLIDARPortGrabber::launch() {
 	std::vector<rplidar::RplidarScanMode> scan_modes;
 	_u16 mode;
 	print_scan_modes(scan_modes, mode);
+	std::cout << "Selected scan mode: " << _u16(scan_mode_) << "." << std::endl;
 	std::cout << "Statring motor." << std::endl;
 	res = driver_->startMotor();
 	if (IS_FAIL(res)) {
@@ -159,6 +160,7 @@ bool CloudRPLIDARPortGrabber::launch() {
 		status_ = false;
 		return false;
 	}
+
 	res = driver_->startScanExpress(false, _u16(scan_mode_));
 	if (IS_FAIL(res)) {
 		std::cout << "ERROR: Unable to start scanning." << std::endl;
