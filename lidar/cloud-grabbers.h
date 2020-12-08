@@ -75,9 +75,8 @@ public:
 	bool print_info();
 	bool print_health();
 	bool print_scan_modes(std::vector<rplidar::RplidarScanMode>& scan_modes, _u16& default_mode);
-	void print_scan_info() const;
 	bool launch();
-	bool scan(bool verbose = false);
+	bool scan();
 	void stop();
 
 private:

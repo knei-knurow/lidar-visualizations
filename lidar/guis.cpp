@@ -1,10 +1,17 @@
 #include "guis.h"
 
-TerminalGUI::TerminalGUI() {
-
+TerminalGUI::TerminalGUI(bool verbose) {
+	verbose_ = verbose;
+	count_ = 0;
 }
 
 bool TerminalGUI::update(const Cloud& cloud) {
+	std::cout << "!\t" << ++count_ << std::endl;
+	if (verbose_) {
+		for (const auto& pt : cloud.pts_cyl) {
+			std::cout << pt.angle << "\t" << pt.dist << std::endl;
+		}
+	}
 	return true;
 }
 
@@ -58,7 +65,7 @@ bool SFMLGUI::update(const Cloud& cloud) {
 	render_point(0, 0, Color::Red);
 
 	window_.display();
-	sf::sleep(sf::milliseconds(sets_.sleep_time_ms));
+	//sf::sleep(sf::milliseconds(sets_.sleep_time_ms));
 	return true;
 }
 

@@ -181,15 +181,15 @@ bool App::parse_args(std::vector<std::string>& args) {
 
 	if (!rplidar_port.empty()) {
 		cloud_grabber_ptr_ = std::make_unique<CloudRPLIDARPortGrabber>(rplidar_port, 256000, rplidar_mode);
-		if (!cloud_grabber_ptr_->get_status()) cloud_grabber_ptr_.release();
+		if (!cloud_grabber_ptr_->get_status()) cloud_grabber_ptr_.reset(nullptr);
 	}
 	else if (!cloud_series_filename.empty()) {
 		cloud_grabber_ptr_ = std::make_unique<CloudFileSeriesGrabber>(cloud_series_filename);
-		if (!cloud_grabber_ptr_->get_status()) cloud_grabber_ptr_.release();
+		if (!cloud_grabber_ptr_->get_status()) cloud_grabber_ptr_.reset(nullptr);
 	}
 	else if (!cloud_filename.empty()) {
 		cloud_grabber_ptr_ = std::make_unique<CloudFileGrabber>(cloud_filename, 0.2);
-		if (!cloud_grabber_ptr_->get_status()) cloud_grabber_ptr_.release();
+		if (!cloud_grabber_ptr_->get_status()) cloud_grabber_ptr_.reset(nullptr);
 	}
 
 	if (!cloud_grabber_ptr_ && !gui_ptr_ && !scenario_ptr_) {

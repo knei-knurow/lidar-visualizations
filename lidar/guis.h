@@ -24,10 +24,12 @@ public:
 class TerminalGUI
 	: public GUI {
 public:
-	TerminalGUI();
+	TerminalGUI(bool verbose = true);
 	virtual bool update(const Cloud& cloud);
 
 private:
+	bool verbose_;
+	size_t count_;
 };
 
 #ifdef USING_SFML

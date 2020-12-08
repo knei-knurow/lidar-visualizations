@@ -28,7 +28,7 @@ CloudRPLIDARPortGrabber::~CloudRPLIDARPortGrabber() {
 }
 
 bool CloudRPLIDARPortGrabber::read(Cloud& cloud) {
-	scan(false);
+	scan();
 	if (!status_) return false;
 
 	cloud = Cloud();
@@ -51,7 +51,6 @@ bool CloudRPLIDARPortGrabber::read(Cloud& cloud) {
 		cloud.pts_cyl.push_back(pt_cyl);
 		cloud.pts_cart.push_back(pt_cyl.to_cart());
 	}
-
 	return status_;
 }
 
@@ -117,23 +116,6 @@ bool CloudRPLIDARPortGrabber::print_scan_modes(std::vector<rplidar::RplidarScanM
 	return true;
 }
 
-void CloudRPLIDARPortGrabber::print_scan_info() const {
-	int zero_quality = 0, avg_quality = 0, min_dist = 10000000, max_dist = 0;
-	for (size_t i = 0; i < buffer_size_; i++) {
-		if (buffer_[i].quality == 0) zero_quality++;
-		else {
-			if (buffer_[i].dist_mm_q2 < min_dist) min_dist = buffer_[i].dist_mm_q2;
-			if (buffer_[i].dist_mm_q2 > max_dist) max_dist = buffer_[i].dist_mm_q2;
-		}
-		avg_quality += buffer_[i].quality;
-	}
-	avg_quality /= buffer_size_;
-	std::cout << "- "
-		<< "count: " << buffer_size_
-		<< ", zeros: " << zero_quality << " (" << zero_quality * 100 / buffer_size_ << "%)"
-		<< ", avg. quality: " << avg_quality << std::endl;
-}
-
 bool CloudRPLIDARPortGrabber::launch() {
 	if (!status_) return false;
 
@@ -142,11 +124,12 @@ bool CloudRPLIDARPortGrabber::launch() {
 	std::cout << "  Baudrate: " << baudrate_ << "" << std::endl;
 	auto res = driver_->connect(portname_.c_str(), baudrate_);
 	if (IS_FAIL(res)) {
-		std::cerr << "ERROR: Unable to establish connection with LIDAR." << std::endl;
+		std::cerr << "ERROR: Unable to establish connection." << std::endl;
 		status_ = false;
 		return false;
 	}
 	std::cout << "Connection established." << std::endl;
+
 	print_info();
 	print_health();
 	std::vector<rplidar::RplidarScanMode> scan_modes;
@@ -167,11 +150,12 @@ bool CloudRPLIDARPortGrabber::launch() {
 		status_ = false;
 		return false;
 	}
+	status_ = true;
 	return true;
 }
 
-bool CloudRPLIDARPortGrabber::scan(bool verbose) {
-	size_t buffer_size;
+bool CloudRPLIDARPortGrabber::scan() {
+	size_t buffer_size = rplidar::RPlidarDriver::MAX_SCAN_NODES;
 	auto res = driver_->grabScanDataHq(buffer_, buffer_size);
 	buffer_size_ = buffer_size;
 	if (IS_FAIL(res)) {
@@ -180,7 +164,6 @@ bool CloudRPLIDARPortGrabber::scan(bool verbose) {
 		return false;
 	}
 	driver_->ascendScanData(buffer_, buffer_size);
-	if (verbose) print_scan_info();
 	return true;
 }
 
