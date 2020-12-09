@@ -82,6 +82,14 @@ public:
 	inline SFMLGUISettings& settings() { return sets_; }
 
 private:
+	enum StatusKey {
+		STATUS_KEY_UP,
+		STATUS_KEY_RIGHT,
+		STATUS_KEY_DOWN, 
+		STATUS_KEY_LEFT,
+		STATUS_KEY_COUNT,
+	};
+
 	void handle_input();
 	void render_grid();
 	void render_cloud_bars(const Cloud& cloud);
@@ -100,6 +108,7 @@ private:
 	sf::RenderWindow window_;
 
 	size_t screenshots_cnt_;
+	bool status_keys_[int(STATUS_KEY_COUNT)];
 };
 #endif
 

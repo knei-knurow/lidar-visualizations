@@ -29,6 +29,11 @@ SFMLGUI::SFMLGUI(const SFMLGUISettings& settings) {
 		window_settings
 	);
 
+	for (int i = 0; i < STATUS_KEY_COUNT; i++) {
+		status_keys_[i] = false;
+	}
+		
+
 	screenshots_cnt_ = 0;
 }
 
@@ -69,6 +74,7 @@ bool SFMLGUI::update(const Cloud& cloud) {
 	render_point(0, 0, Color::Red);
 	
 	window_.display();
+	window_.setTitle("Scale: 1mm ->" + std::to_string(sets_.scale) + "px");
 	sf::sleep(sf::milliseconds(sets_.sleep_time_ms));
 	return true;
 }
@@ -87,18 +93,20 @@ void SFMLGUI::handle_input() {
 		if (event.type == sf::Event::Closed)
 			sets_.running = false;
 		if (event.type == sf::Event::KeyPressed) {
-			if (event.key.code == sf::Keyboard::S);
+			if (event.key.code == sf::Keyboard::Up)
+				status_keys_[STATUS_KEY_UP] = true;
+			if (event.key.code == sf::Keyboard::Down)
+				status_keys_[STATUS_KEY_DOWN] = true;
+			if (event.key.code == sf::Keyboard::Left)
+				status_keys_[STATUS_KEY_LEFT] = true;
+			if (event.key.code == sf::Keyboard::Right)
+				status_keys_[STATUS_KEY_RIGHT] = true;
+
+			if (event.key.code == sf::Keyboard::S)
 				save_screenshot();
 			if (event.key.code == sf::Keyboard::T);
 				// save_txt();
-			if (event.key.code == sf::Keyboard::Up)
-				sets_.origin_y -= 5;
-			if (event.key.code == sf::Keyboard::Down)
-				sets_.origin_y += 5;
-			if (event.key.code == sf::Keyboard::Left)
-				sets_.origin_x -= 5;
-			if (event.key.code == sf::Keyboard::Right)
-				sets_.origin_x += 5;
+
 			if (event.key.code == sf::Keyboard::R)
 				sets_.render_mouse_ray = !sets_.render_mouse_ray;
 			if (event.key.code == sf::Keyboard::C)
@@ -126,63 +134,22 @@ void SFMLGUI::handle_input() {
 			}
 		}
 
-			//// Screenshot saving event
-			//if (event.key.code == sf::Keyboard::S) {
-			//	if (save_screenshot(mat, output_dir)) std::cout << "Screenshot saved." << std::endl;
-			//	else std::cerr << "ERROR: Something went wrong while saving screenshot." << std::endl;
-			//}
-			//// TXT cloud saving event
-			//if (event.key.code == sf::Keyboard::T) {
-			//	if (save_txt(cloud, output_dir)) std::cout << "TXT cloud saved." << std::endl;
-			//	else std::cerr << "ERROR: Something went wrong while saving TXT cloud." << std::endl;
-			//}
-			//// Stop/Start point cloud rotating
-			//if (event.key.code == sf::Keyboard::P) {
-			//	rotate = !rotate;
-			//}
-			//// Cloud rotation event
-			//if (event.key.code == sf::Keyboard::Right) {
-			//	float rotation = 5.0f;
-			//	if (event.key.control) rotation = 1.0f;
-			//	if (event.key.shift) rotation = 30.0f;
-			//	rotate_cloud(cloud, rotation);
-			//}
-			//// Cloud rotation event
-			//if (event.key.code == sf::Keyboard::Left) {
-			//	float rotation = 5.0f;
-			//	if (event.key.control) rotation = 1.0f;
-			//	if (event.key.shift) rotation = 30.0f;
-			//	rotate_cloud(cloud, -rotation);
-			//}
-			//// Cloud scale event
-			//if (event.key.code == sf::Keyboard::Down) {
-			//	scale -= 0.01f;
-			//	if (event.key.control) scale -= 0.001f;
-			//	if (event.key.shift) scale -= 0.05f;
-
-			//	if (scale <= 0) scale = 0.001;
-			//}
-			//// Cloud scale event
-			//if (event.key.code == sf::Keyboard::Up) {
-			//	scale += 0.01f;
-			//	if (event.key.control) scale += 0.001f;
-			//	if (event.key.shift) scale += 0.05f;
-
-			//	if (scale <= 0) scale = 0.001;
-			//}
-			//// Mouse ray event
-			//if (event.key.code == sf::Keyboard::R) {
-			//	mouse_ray = !mouse_ray;
-			//}
-			//// Point cloud display mode event
-			//if (event.key.code == sf::Keyboard::M) {
-			//	point_cloud_display_mode = (point_cloud_display_mode + 1) % 3;
-			//}
-			//// Point cloud display mode event
-			//if (event.key.code == sf::Keyboard::C) {
-			//	coloring = (coloring + 1) % 2;
-			//}
+		if (event.type == sf::Event::KeyReleased) {
+			if (event.key.code == sf::Keyboard::Up)
+				status_keys_[STATUS_KEY_UP] = false;
+			if (event.key.code == sf::Keyboard::Down)
+				status_keys_[STATUS_KEY_DOWN] = false;
+			if (event.key.code == sf::Keyboard::Left)
+				status_keys_[STATUS_KEY_LEFT] = false;
+			if (event.key.code == sf::Keyboard::Right)
+				status_keys_[STATUS_KEY_RIGHT] = false;
+		}
 	}
+
+	if (status_keys_[STATUS_KEY_UP]) sets_.origin_y += 25;
+	if (status_keys_[STATUS_KEY_DOWN]) sets_.origin_y -= 25;
+	if (status_keys_[STATUS_KEY_LEFT]) sets_.origin_x += 25;
+	if (status_keys_[STATUS_KEY_RIGHT]) sets_.origin_x -= 25;
 }
 
 void SFMLGUI::render_grid() {
