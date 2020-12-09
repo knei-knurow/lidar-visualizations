@@ -68,6 +68,8 @@ struct SFMLGUISettings {
 	bool render_mouse_ray = true;
 	bool render_grid = true;
 	unsigned antialiasing = 8;
+
+	std::string output_dir = ".";
 };
 
 class SFMLGUI
@@ -96,6 +98,8 @@ private:
 
 	SFMLGUISettings sets_;
 	sf::RenderWindow window_;
+
+	size_t screenshots_cnt_;
 };
 #endif
 

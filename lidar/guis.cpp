@@ -25,9 +25,11 @@ SFMLGUI::SFMLGUI(const SFMLGUISettings& settings) {
 	window_.create(
 		sf::VideoMode(sets_.width, sets_.height),
 		"Lidar", 
-		sf::Style::Close | sf::Style::Titlebar,
+		sf::Style::Close | sf::Style::Titlebar | sf::Style::Resize,
 		window_settings
 	);
+
+	screenshots_cnt_ = 0;
 }
 
 bool SFMLGUI::update(const Cloud& cloud) {
@@ -65,9 +67,6 @@ bool SFMLGUI::update(const Cloud& cloud) {
 		render_connected_cloud(cloud, 1.0, false);
 	}
 	render_point(0, 0, Color::Red);
-
-
-
 	
 	window_.display();
 	sf::sleep(sf::milliseconds(sets_.sleep_time_ms));
@@ -79,15 +78,17 @@ void SFMLGUI::handle_input() {
 	while (window_.pollEvent(event)) {
 		if (event.type == sf::Event::Resized) {
 			sets_.width = event.size.width;
-			sets_.width = event.size.height;
+			sets_.height = event.size.height;
 			sets_.origin_x = event.size.width / 2;
 			sets_.origin_y = event.size.height / 2;
+			sf::FloatRect visible_area(0, 0, event.size.width, event.size.height);
+			window_.setView(sf::View(visible_area));
 		}
 		if (event.type == sf::Event::Closed)
 			sets_.running = false;
 		if (event.type == sf::Event::KeyPressed) {
 			if (event.key.code == sf::Keyboard::S);
-				// save_screenshot();
+				save_screenshot();
 			if (event.key.code == sf::Keyboard::T);
 				// save_txt();
 			if (event.key.code == sf::Keyboard::Up)
@@ -98,10 +99,6 @@ void SFMLGUI::handle_input() {
 				sets_.origin_x -= 5;
 			if (event.key.code == sf::Keyboard::Right)
 				sets_.origin_x += 5;
-			if (event.key.code == sf::Keyboard::PageUp)
-				sets_.scale *= 0.9;
-			if (event.key.code == sf::Keyboard::PageDown)
-				sets_.scale *= 1.1;
 			if (event.key.code == sf::Keyboard::R)
 				sets_.render_mouse_ray = !sets_.render_mouse_ray;
 			if (event.key.code == sf::Keyboard::C)
@@ -294,7 +291,26 @@ void SFMLGUI::render_front_line(int x, int y) {
 }
 
 bool SFMLGUI::save_screenshot() {
-	return false;
+	auto t = std::time(nullptr);
+	auto tm = *std::localtime(&t);
+	std::ostringstream oss;
+	oss << std::put_time(&tm, "%d.%m.%Y-%H.%M.%S");
+
+	auto filename = sets_.output_dir + "/screenshot-" + 
+		std::to_string(++screenshots_cnt_) + "-" + oss.str() + ".png";
+
+	sf::Texture texture;
+	texture.create(sets_.width, sets_.height);
+	texture.update(window_);
+	
+	if (!texture.copyToImage().saveToFile(filename)) {
+		std::cerr << "ERROR: Unable to save screenshot." << std::endl;
+		return false;
+	}
+	else {
+		std::cout << "Screenshot saved: " << filename << std::endl;
+		return true;
+	}
 }
 
 float SFMLGUI::calc_scale(float max_dist) {
