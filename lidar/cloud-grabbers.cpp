@@ -12,7 +12,6 @@ PointCart PointCyl::to_cart(float scale, float origin_x, float origin_y) const {
 	return { x, y };
 }
 
-
 #ifdef USING_RPLIDAR
 CloudRPLIDARPortGrabber::CloudRPLIDARPortGrabber(std::string portname, int baudrate, RPLIDARScanModes scan_mode)
 	: portname_(portname), baudrate_(baudrate), scan_mode_(scan_mode) {

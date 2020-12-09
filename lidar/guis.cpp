@@ -65,7 +65,7 @@ bool SFMLGUI::update(const Cloud& cloud) {
 	render_point(0, 0, Color::Red);
 
 	window_.display();
-	//sf::sleep(sf::milliseconds(sets_.sleep_time_ms));
+	sf::sleep(sf::milliseconds(sets_.sleep_time_ms));
 	return true;
 }
 
