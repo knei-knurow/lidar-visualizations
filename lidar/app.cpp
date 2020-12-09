@@ -73,7 +73,6 @@ void App::print_help() {
 	std::cout << "\tR           mouse ray display on/off" << std::endl;
 }
 
-
 bool App::parse_args(std::vector<std::string>& args) {
 	std::vector<std::string>::iterator it;
 
