@@ -16,7 +16,8 @@ bool TerminalGUI::update(const Cloud& cloud) {
 }
 
 #ifdef USING_SFML
-SFMLGUI::SFMLGUI(const SFMLGUISettings& settings) {
+SFMLGUI::SFMLGUI(const SFMLGUISettings& settings) 
+	: cloud_writer_(settings.output_dir) {
 	sets_ = settings;
 	
 	sf::ContextSettings window_settings;
@@ -33,7 +34,6 @@ SFMLGUI::SFMLGUI(const SFMLGUISettings& settings) {
 		status_keys_[i] = false;
 	}
 		
-
 	screenshots_cnt_ = 0;
 }
 
@@ -43,7 +43,7 @@ bool SFMLGUI::update(const Cloud& cloud) {
 		return false;
 	}
 
-	handle_input();
+	handle_input(cloud);
 
 	if (sets_.autoscale) {
 		auto new_scale = calc_scale(cloud.max);
@@ -79,7 +79,7 @@ bool SFMLGUI::update(const Cloud& cloud) {
 	return true;
 }
 
-void SFMLGUI::handle_input() {
+void SFMLGUI::handle_input(const Cloud& cloud) {
 	sf::Event event;
 	while (window_.pollEvent(event)) {
 		if (event.type == sf::Event::Resized) {
@@ -104,8 +104,8 @@ void SFMLGUI::handle_input() {
 
 			if (event.key.code == sf::Keyboard::S)
 				save_screenshot();
-			if (event.key.code == sf::Keyboard::T);
-				// save_txt();
+			if (event.key.code == sf::Keyboard::T)
+				save_cloud(cloud);
 
 			if (event.key.code == sf::Keyboard::R)
 				sets_.render_mouse_ray = !sets_.render_mouse_ray;
@@ -278,6 +278,10 @@ bool SFMLGUI::save_screenshot() {
 		std::cout << "Screenshot saved: " << filename << std::endl;
 		return true;
 	}
+}
+
+bool SFMLGUI::save_cloud(const Cloud& cloud) {
+	return cloud_writer_.write(cloud);
 }
 
 float SFMLGUI::calc_scale(float max_dist) {

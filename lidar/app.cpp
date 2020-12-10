@@ -22,7 +22,7 @@ int App::run() {
 			}
 		}
 
-		// Do some calculations, writing to file, depending on the selected scenario
+		// Do some additional things, depending on the selected scenario
 		if (running_ && scenario_ptr_) {
 			if (!scenario_ptr_->update(cloud)) {
 				running_ = false;
@@ -30,6 +30,7 @@ int App::run() {
 		}
 
 		// Update the GUI with new data
+		// Save output files on user's request
 		if (running_ && gui_ptr_) {
 			if (!gui_ptr_->update(cloud)) {
 				running_ = false;

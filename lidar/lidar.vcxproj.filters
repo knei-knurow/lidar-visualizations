@@ -13,24 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Source Files\scenarios">
-      <UniqueIdentifier>{4f06dd71-2547-4428-86fd-e3d4b303055f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\scenarios">
-      <UniqueIdentifier>{68e7c4a2-3d4c-420f-a3d7-56db9ba113f4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\cloud-grabbers">
-      <UniqueIdentifier>{68bb6ca8-7328-4be8-9068-3f02f552be7a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\cloud-grabbers">
-      <UniqueIdentifier>{2de7de27-505c-4757-9f1c-462432619079}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\cloud-writers">
-      <UniqueIdentifier>{97ace8ab-693b-496f-9c86-2ef9e0750941}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\guis">
-      <UniqueIdentifier>{2a101407-64a9-4083-bb23-d26019e775e0}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="communication.cpp">
@@ -42,13 +24,19 @@
     <ClCompile Include="app.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="save_series_scenario.cpp">
-      <Filter>Source Files\scenarios</Filter>
+    <ClCompile Include="guis.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cloud.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="cloud-grabbers.cpp">
-      <Filter>Source Files\cloud-grabbers</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="guis.cpp">
+    <ClCompile Include="cloud-writers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="save_series_scenario.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -62,14 +50,20 @@
     <ClInclude Include="app.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="cloud.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="scenarios.h">
-      <Filter>Header Files\scenarios</Filter>
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="cloud-grabbers.h">
-      <Filter>Header Files\cloud-grabbers</Filter>
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cloud-writers.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="guis.h">
-      <Filter>Header Files\guis</Filter>
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

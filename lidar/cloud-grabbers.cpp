@@ -1,17 +1,5 @@
 #include "cloud-grabbers.h"
 
-PointCart PointCyl::to_cart() const {
-	int x = int(std::round(dist * std::sin(angle * (acos(-1.0f) / 180.0f))));
-	int y = int(std::round(dist * std::cos(angle * (acos(-1.0f) / 180.0f))));
-	return { x, y };
-}
-
-PointCart PointCyl::to_cart(float scale, float origin_x, float origin_y) const {
-	int x = int(std::round(dist * std::sin(angle * (acos(-1.0f) / 180.0f)) * scale)) + origin_x;
-	int y = int(std::round(dist * std::cos(angle * (acos(-1.0f) / 180.0f)) * scale)) + origin_y;
-	return { x, y };
-}
-
 #ifdef USING_RPLIDAR
 CloudRPLIDARPortGrabber::CloudRPLIDARPortGrabber(std::string portname, int baudrate, RPLIDARScanModes scan_mode)
 	: portname_(portname), baudrate_(baudrate), scan_mode_(scan_mode) {
@@ -235,6 +223,7 @@ bool CloudFileGrabber::read(Cloud& cloud) {
 	return status_;
 }
 
+
 CloudFileSeriesGrabber::CloudFileSeriesGrabber(const std::string& filename) {
 	// TODO
 }
@@ -242,4 +231,3 @@ CloudFileSeriesGrabber::CloudFileSeriesGrabber(const std::string& filename) {
 bool CloudFileSeriesGrabber::read(Cloud& cloud) {
 	return false;
 }
-

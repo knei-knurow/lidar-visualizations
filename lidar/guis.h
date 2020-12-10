@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
-#include "cloud-grabbers.h"
+#include "cloud.h"
+#include "cloud-writers.h"
 #ifdef USING_SFML
 #include <SFML/System.hpp>
 #include <SFML/Window.hpp>
@@ -90,7 +91,7 @@ private:
 		STATUS_KEY_COUNT,
 	};
 
-	void handle_input();
+	void handle_input(const Cloud& cloud);
 	void render_grid();
 	void render_cloud_bars(const Cloud& cloud);
 	void render_cloud(const Cloud& cloud, float lightness = 1.0f);
@@ -99,6 +100,7 @@ private:
 	void render_front_line(int x, int y);
 
 	bool save_screenshot();
+	bool save_cloud(const Cloud& cloud);
 
 	float calc_scale(float max_dist);
 	Color calc_color_from_angle(float v, float lightness = 1.0f);
@@ -106,9 +108,10 @@ private:
 
 	SFMLGUISettings sets_;
 	sf::RenderWindow window_;
-
-	size_t screenshots_cnt_;
 	bool status_keys_[int(STATUS_KEY_COUNT)];
+	size_t screenshots_cnt_;
+	CloudFileWriter cloud_writer_;
+
 };
 #endif
 
