@@ -6,13 +6,12 @@
 #include <sstream>
 #include <iostream>
 #include <iomanip>
-
+#include "cloud.h"
 #ifdef USING_RPLIDAR
 #include <rplidar.h>
 using namespace rp::standalone;
 #endif
 
-#include "cloud.h"
 
 enum class CloudGrabberType {
 #ifdef USING_RPLIDAR
@@ -81,7 +80,7 @@ private:
 	Cloud cloud_;
 };
 
-// TODO
+
 class CloudFileSeriesGrabber
 	: public CloudGrabber {
 public:
@@ -89,5 +88,10 @@ public:
 	virtual bool read(Cloud& cloud);
 
 private:
+	bool open();
+
+	std::string filename_;
+	std::ifstream file_;
+	size_t clouds_cnt_;
 };
 

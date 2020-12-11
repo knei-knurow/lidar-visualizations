@@ -1,5 +1,8 @@
 #include "guis.h"
 
+//
+//	TerminalGUI
+//
 TerminalGUI::TerminalGUI(bool verbose) {
 	verbose_ = verbose;
 	count_ = 0;
@@ -15,6 +18,9 @@ bool TerminalGUI::update(const Cloud& cloud) {
 	return true;
 }
 
+//
+//	SFMLGUI
+//
 #ifdef USING_SFML
 SFMLGUI::SFMLGUI(const SFMLGUISettings& settings) 
 	: cloud_writer_(settings.output_dir) {
@@ -30,7 +36,7 @@ SFMLGUI::SFMLGUI(const SFMLGUISettings& settings)
 		window_settings
 	);
 
-	for (int i = 0; i < STATUS_KEY_COUNT; i++) {
+	for (int i = 0; i < int(StatusKey::COUNT); i++) {
 		status_keys_[i] = false;
 	}
 		
@@ -44,33 +50,36 @@ bool SFMLGUI::update(const Cloud& cloud) {
 	}
 
 	handle_input(cloud);
-
-	if (sets_.autoscale) {
-		auto new_scale = calc_scale(cloud.max);
-		if (new_scale >= sets_.scale * 1.1 || new_scale <= sets_.scale * 0.9)
-			sets_.scale = new_scale;
-	}
-
 	window_.clear(sets_.color_background);
+
 	if (sets_.render_grid) {
 		render_grid();
 	}
 
-	if (sets_.render_grid) {
-		render_cloud_bars(cloud);
+	if (cloud.size > 0) {
+		if (sets_.autoscale) {
+			auto new_scale = calc_scale(cloud.max);
+			if (new_scale >= sets_.scale * 1.1 || new_scale <= sets_.scale * 0.9)
+				sets_.scale = new_scale;
+		}
+
+		if (sets_.render_grid) {
+			render_cloud_bars(cloud);
+		}
+
+		render_front_line(cloud.pts_cart.front().x, cloud.pts_cart.front().y);
+
+		if (sets_.pts_display_mode == SFMLGUISettings::DOTS_LINES) {
+			render_connected_cloud(cloud);
+		}
+		else if (sets_.pts_display_mode == SFMLGUISettings::DOTS) {
+			render_cloud(cloud);
+		}
+		else if (sets_.pts_display_mode == SFMLGUISettings::LINES) {
+			render_connected_cloud(cloud, 1.0, false);
+		}
 	}
 
-	render_front_line(cloud.pts_cart.front().x, cloud.pts_cart.front().y);
-
-	if (sets_.pts_display_mode == SFMLGUISettings::DOTS_LINES) {
-		render_connected_cloud(cloud);
-	}
-	else if (sets_.pts_display_mode == SFMLGUISettings::DOTS) {
-		render_cloud(cloud);
-	}
-	else if (sets_.pts_display_mode == SFMLGUISettings::LINES) {
-		render_connected_cloud(cloud, 1.0, false);
-	}
 	render_point(0, 0, Color::Red);
 	
 	window_.display();
@@ -94,13 +103,13 @@ void SFMLGUI::handle_input(const Cloud& cloud) {
 			sets_.running = false;
 		if (event.type == sf::Event::KeyPressed) {
 			if (event.key.code == sf::Keyboard::Up)
-				status_keys_[STATUS_KEY_UP] = true;
+				status_keys_[int(StatusKey::UP)] = true;
 			if (event.key.code == sf::Keyboard::Down)
-				status_keys_[STATUS_KEY_DOWN] = true;
+				status_keys_[int(StatusKey::DOWN)] = true;
 			if (event.key.code == sf::Keyboard::Left)
-				status_keys_[STATUS_KEY_LEFT] = true;
+				status_keys_[int(StatusKey::LEFT)] = true;
 			if (event.key.code == sf::Keyboard::Right)
-				status_keys_[STATUS_KEY_RIGHT] = true;
+				status_keys_[int(StatusKey::RIGHT)] = true;
 
 			if (event.key.code == sf::Keyboard::S)
 				save_screenshot();
@@ -136,20 +145,20 @@ void SFMLGUI::handle_input(const Cloud& cloud) {
 
 		if (event.type == sf::Event::KeyReleased) {
 			if (event.key.code == sf::Keyboard::Up)
-				status_keys_[STATUS_KEY_UP] = false;
+				status_keys_[int(StatusKey::UP)] = false;
 			if (event.key.code == sf::Keyboard::Down)
-				status_keys_[STATUS_KEY_DOWN] = false;
+				status_keys_[int(StatusKey::DOWN)] = false;
 			if (event.key.code == sf::Keyboard::Left)
-				status_keys_[STATUS_KEY_LEFT] = false;
+				status_keys_[int(StatusKey::LEFT)] = false;
 			if (event.key.code == sf::Keyboard::Right)
-				status_keys_[STATUS_KEY_RIGHT] = false;
+				status_keys_[int(StatusKey::RIGHT)] = false;
 		}
 	}
 
-	if (status_keys_[STATUS_KEY_UP]) sets_.origin_y += 25;
-	if (status_keys_[STATUS_KEY_DOWN]) sets_.origin_y -= 25;
-	if (status_keys_[STATUS_KEY_LEFT]) sets_.origin_x += 25;
-	if (status_keys_[STATUS_KEY_RIGHT]) sets_.origin_x -= 25;
+	if (status_keys_[int(StatusKey::UP)]) sets_.origin_y += 25;
+	if (status_keys_[int(StatusKey::DOWN)]) sets_.origin_y -= 25;
+	if (status_keys_[int(StatusKey::LEFT)]) sets_.origin_x += 25;
+	if (status_keys_[int(StatusKey::RIGHT)]) sets_.origin_x -= 25;
 }
 
 void SFMLGUI::render_grid() {

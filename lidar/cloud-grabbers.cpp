@@ -1,5 +1,8 @@
 #include "cloud-grabbers.h"
 
+//
+//	CloudRPLIDARPortGrabber
+//
 #ifdef USING_RPLIDAR
 CloudRPLIDARPortGrabber::CloudRPLIDARPortGrabber(std::string portname, int baudrate, RPLIDARScanModes scan_mode)
 	: portname_(portname), baudrate_(baudrate), scan_mode_(scan_mode) {
@@ -166,10 +169,17 @@ void CloudRPLIDARPortGrabber::stop() {
 }
 #endif
 
+//
+//	CloudFileGrabber
+//
 CloudFileGrabber::CloudFileGrabber(const std::string& filename, float rot_angle) {
 	filename_ = filename;
 	rot_angle_ = rot_angle;
 	status_ = std::ifstream(filename_).good();
+	if (!status_) {
+		std::cerr << "Error: File does not contain a valid cloud." << std::endl;
+		status_ = false;
+	}
 }
 
 bool CloudFileGrabber::read(Cloud& cloud) {
@@ -223,11 +233,77 @@ bool CloudFileGrabber::read(Cloud& cloud) {
 	return status_;
 }
 
-
+//
+//	CloudFileSeriesGrabber
+//
 CloudFileSeriesGrabber::CloudFileSeriesGrabber(const std::string& filename) {
-	// TODO
+	filename_ = filename;
+	clouds_cnt_ = 0;
+	file_.open(filename_);
+	open();
 }
 
 bool CloudFileSeriesGrabber::read(Cloud& cloud) {
-	return false;
+	if (!status_) return false;
+
+	cloud = Cloud();
+	while (file_.good()) {
+		std::string line;
+		std::getline(file_, line);
+		if (line.empty() || line[0] == '#') {
+			continue;
+		}
+		else if (line[0] == '!') {
+			break;
+		}
+		PointCyl pt_cyl;
+		std::stringstream sline(line);
+		sline >> pt_cyl.angle >> pt_cyl.dist;
+
+		if (pt_cyl.dist == 0) continue;
+		if (pt_cyl.dist > cloud.max) {
+			cloud.max = pt_cyl.dist;
+			cloud.max_idx = cloud.size;
+		}
+		if (pt_cyl.dist < cloud.min && pt_cyl.dist > 0) {
+			cloud.min = pt_cyl.dist;
+			cloud.min_idx = cloud.size;
+		}
+
+		cloud.size++;
+		cloud.pts_cyl.push_back(pt_cyl);
+		cloud.pts_cart.push_back(pt_cyl.to_cart());
+	}
+
+	if (cloud.size == 0 && clouds_cnt_ == 0) {
+		std::cerr << "Error: File does not contain a valid cloud." << std::endl;
+		status_ = false;
+	}
+
+	clouds_cnt_++;
+
+	if (cloud.size == 0) {
+		std::cerr << "Cloud series end." << std::endl;
+		file_.clear();
+		file_.seekg(0);
+		status_ = open();
+	}
+
+	return status_;
+}
+
+bool CloudFileSeriesGrabber::open() {
+	while (file_.good()) {
+		std::string line;
+		std::getline(file_, line);
+		if (line.empty() || line[0] == '!') {
+			break;
+		}
+	}
+
+	if (!file_.good()) {
+		std::cerr << "Error: File does not contain a valid cloud series." << std::endl;
+		status_ = false;
+	}
+	return status_;
 }

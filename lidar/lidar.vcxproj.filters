@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="communication.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -36,17 +33,11 @@
     <ClCompile Include="cloud-writers.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="save_series_scenario.cpp">
+    <ClCompile Include="scenarios.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="communication.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="characters.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="app.h">
       <Filter>Header Files</Filter>
     </ClInclude>

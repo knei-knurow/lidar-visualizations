@@ -2,31 +2,37 @@
 #include <vector>
 #include <string>
 #include <chrono>
-#include "app.h"
+#include "cloud.h"
+#include "cloud-writers.h"
 
 enum class ScenarioType {
 	IDLE,
-	SCENARIO_TYPE_COUNT,
+	RECORD_SERIES,
 };
+
 
 class Scenario {
 public:
+	Scenario() : status_(true) {};
+	virtual ~Scenario() {}
 	virtual bool update(Cloud& cloud) = 0;
-	inline virtual int get_status() const { return status_; }
+	inline virtual bool get_status() const { return status_; }
+	inline virtual ScenarioType get_type() const = 0;
+
 protected:
-	int status_;
+	bool status_;
 };
 
-class SaveSeriesScenario
+
+class RecordSeriesScenario
 	: public Scenario {
 public:
-	SaveSeriesScenario(const std::string& dir);
-	~SaveSeriesScenario();
+	RecordSeriesScenario(const std::string& output_dir, 
+		CoordSystem coord_sys = CoordSystem::CYL);
+	~RecordSeriesScenario();
+	virtual bool update(Cloud& cloud);
+	inline virtual ScenarioType get_type() const { return ScenarioType::RECORD_SERIES; }
 
-	virtual bool update(uint8_t* render_buffer, Cloud& cloud);
 private:
-	std::string filename_;
-	std::ofstream file_;
-	std::size_t frame_counter_;
-	std::chrono::steady_clock::time_point time_begin_;
+	CloudFileSeriesWriter series_writer_;
 };

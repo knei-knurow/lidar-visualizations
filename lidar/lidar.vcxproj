@@ -91,17 +91,14 @@
     <ClCompile Include="cloud-grabbers.cpp" />
     <ClCompile Include="cloud-writers.cpp" />
     <ClCompile Include="cloud.cpp" />
-    <ClCompile Include="communication.cpp" />
     <ClCompile Include="app.cpp" />
     <ClCompile Include="guis.cpp" />
-    <ClCompile Include="save_series_scenario.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="scenarios.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="characters.h" />
     <ClInclude Include="cloud-writers.h" />
     <ClInclude Include="cloud.h" />
-    <ClInclude Include="communication.h" />
     <ClInclude Include="app.h" />
     <ClInclude Include="cloud-grabbers.h" />
     <ClInclude Include="guis.h" />

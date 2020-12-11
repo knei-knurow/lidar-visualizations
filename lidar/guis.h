@@ -21,7 +21,6 @@ public:
 	virtual bool update(const Cloud & cloud) = 0;
 };
 
-
 class TerminalGUI
 	: public GUI {
 public:
@@ -83,12 +82,12 @@ public:
 	inline SFMLGUISettings& settings() { return sets_; }
 
 private:
-	enum StatusKey {
-		STATUS_KEY_UP,
-		STATUS_KEY_RIGHT,
-		STATUS_KEY_DOWN, 
-		STATUS_KEY_LEFT,
-		STATUS_KEY_COUNT,
+	enum class StatusKey {
+		UP,
+		RIGHT,
+		DOWN, 
+		LEFT,
+		COUNT,
 	};
 
 	void handle_input(const Cloud& cloud);
@@ -108,10 +107,9 @@ private:
 
 	SFMLGUISettings sets_;
 	sf::RenderWindow window_;
-	bool status_keys_[int(STATUS_KEY_COUNT)];
+	bool status_keys_[int(StatusKey::COUNT)];
 	size_t screenshots_cnt_;
 	CloudFileWriter cloud_writer_;
-
 };
 #endif
 
