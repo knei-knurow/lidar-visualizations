@@ -134,6 +134,7 @@ bool App::parse_args(std::vector<std::string>& args) {
 	std::string output_dir = get_arg_value(args, "-o", "--output-dir", ".");
 
 	// RPLIDAR mode
+	#ifdef USING_RPLIDAR
 	std::string rplidar_mode_val = get_arg_value(args, "-m", "--rplidar-mode", 
 		std::to_string(int(RPLIDARScanModes::SENSITIVITY)));
 	RPLIDARScanModes rplidar_mode;
@@ -156,6 +157,7 @@ bool App::parse_args(std::vector<std::string>& args) {
 		std::cerr << "ERROR: Invalid RPLIDAR mode id." << std::endl;
 		return false;
 	}
+	#endif
 
 	// GUI Type
 	std::string gui_type_val = get_arg_value(args, "-g", "--gui",
@@ -164,9 +166,11 @@ bool App::parse_args(std::vector<std::string>& args) {
 	if (gui_type_val == std::to_string(int(GUIType::TERMINAL))) {
 		gui_type = GUIType::TERMINAL;
 	}
+	#ifdef USING_SFML
 	else if (gui_type_val == std::to_string(int(GUIType::SFML))) {
 		gui_type = GUIType::SFML;
 	}
+	#endif
 	else {
 		std::cerr << "ERROR: Invalid GUI id." << std::endl;
 		return false;
@@ -191,11 +195,7 @@ bool App::parse_args(std::vector<std::string>& args) {
 	}
 
 	// Initialize the cloud grabber
-	if (!rplidar_port.empty()) {
-		cloud_grabber_ = std::make_unique<CloudRPLIDARPortGrabber>(rplidar_port, 256000, rplidar_mode);
-		if (!cloud_grabber_->get_status()) cloud_grabber_.reset(nullptr);
-	}
-	else if (!cloud_series_filename.empty()) {
+	if (!cloud_series_filename.empty()) {
 		cloud_grabber_ = std::make_unique<CloudFileSeriesGrabber>(cloud_series_filename);
 		if (!cloud_grabber_->get_status()) cloud_grabber_.reset(nullptr);
 	}
@@ -203,6 +203,12 @@ bool App::parse_args(std::vector<std::string>& args) {
 		cloud_grabber_ = std::make_unique<CloudFileGrabber>(cloud_filename, 0.2);
 		if (!cloud_grabber_->get_status()) cloud_grabber_.reset(nullptr);
 	}
+	#ifdef USING_RPLIDAR
+	else if (!rplidar_port.empty()) {
+		cloud_grabber_ = std::make_unique<CloudRPLIDARPortGrabber>(rplidar_port, 256000, rplidar_mode);
+		if (!cloud_grabber_->get_status()) cloud_grabber_.reset(nullptr);
+	}
+	#endif
 	if (!cloud_grabber_ && !gui_ && !scenario_) {
 		std::cerr << "ERROR: No input data has been provided." << std::endl;
 		return false;
@@ -212,15 +218,18 @@ bool App::parse_args(std::vector<std::string>& args) {
 	if (gui_type == GUIType::TERMINAL) {
 		gui_ = std::make_unique<TerminalGUI>();
 	}
+	#ifdef USING_SFML
 	else if (gui_type == GUIType::SFML) {
 		SFMLGUISettings sfml_settings;
 		gui_ = std::make_unique<SFMLGUI>(sfml_settings);
 	}
+	#endif
 
 	// Initialize the scenario
 	if (scenario_type == ScenarioType::RECORD_SERIES) {
 		scenario_ = std::make_unique<RecordSeriesScenario>(output_dir);
 	}
+	#ifdef USING_SFML
 	else if (scenario_type == ScenarioType::SCREENSHOT_SERIES) {
 		if (gui_type == GUIType::SFML) {
 			auto gui_ptr = static_cast<SFMLGUI*>(gui_.get());
@@ -232,6 +241,7 @@ bool App::parse_args(std::vector<std::string>& args) {
 			return false;
 		}
 	}
+	#endif
 
 	if (!args.empty()) {
 		std::cerr << "WARNING: Unused command line arguments: ";

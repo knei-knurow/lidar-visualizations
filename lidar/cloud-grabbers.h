@@ -14,11 +14,9 @@ using namespace rp::standalone;
 
 
 enum class CloudGrabberType {
-#ifdef USING_RPLIDAR
 	RPLIDAR_PORT,
 	FILE,
 	FILE_SERIES,
-#endif
 };
 
 class CloudGrabber {

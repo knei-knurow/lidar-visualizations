@@ -10,10 +10,7 @@
 
 enum class GUIType {
 	TERMINAL,
-#ifdef USING_SFML
 	SFML,
-#endif
-	GUI_TYPE_COUNT,
 };
 
 class GUI {
