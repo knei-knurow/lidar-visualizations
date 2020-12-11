@@ -76,117 +76,121 @@ void App::print_help() {
 	std::cout << "\tR           mouse ray display on/off" << std::endl;
 }
 
-bool App::parse_args(std::vector<std::string>& args) {
-	std::vector<std::string>::iterator it;
-
-	// Print help
-	it = std::find_if(args.begin(), args.end(), [](const std::string& s) { 
-		return s == "-h" || s == "--help";}
+bool App::check_arg(std::vector<std::string>& all_args,
+	const std::string& short_arg, const std::string& long_arg) {
+	auto it = std::find_if(all_args.begin(), all_args.end(), 
+		[short_arg, long_arg](const std::string& s) {
+			return s == short_arg || s == long_arg; 
+		}
 	);
-	if (it != args.end()) {
+
+	if (it == all_args.end()) {
+		return false;
+	}
+
+	all_args.erase(it);
+	return true;
+}
+
+std::string App::get_arg_value(std::vector<std::string>& all_args, const std::string& short_arg, 
+	const std::string& long_arg, const std::string& default_value) {
+	auto it = std::find_if(all_args.begin(), all_args.end(), 
+		[short_arg, long_arg](const std::string& s) {
+			return s == short_arg || s == long_arg;
+		}
+	);
+	
+	std::string value = default_value;
+	if (it == all_args.end()) {
+
+	}
+	else if (it + 1 == all_args.end()) {
+		 all_args.erase(it);
+	}
+	else {
+		value = *(it + 1);
+		all_args.erase(it, it + 2);
+	}
+	return value;
+}
+
+bool App::parse_args(std::vector<std::string>& args) {
+	// Print help
+	if (check_arg(args, "-h", "--help")) {
 		print_help();
 		return false;
 	}
 
 	// Input RPLIDAR port name
-	std::string rplidar_port;
-	it = std::find_if(args.begin(), args.end(), [](const std::string& s) {
-		return s == "-p" || s == "--port"; }
-	);
-	if (it != args.end() && ++it != args.end()) {
-		rplidar_port = *it;
-	}
+	std::string rplidar_port = get_arg_value(args, "-p", "--port");
 
 	// Input cloud filename
-	std::string cloud_filename;
-	it = std::find_if(args.begin(), args.end(), [](const std::string& s) {
-		return s == "-f" || s == "--file"; }
-	);
-	if (it != args.end() && ++it != args.end()) {
-		cloud_filename = *it;
-	}
+	std::string cloud_filename = get_arg_value(args, "-f", "--file");
 
 	// Input cloud series filename
-	std::string cloud_series_filename;
-	it = std::find_if(args.begin(), args.end(), [](const std::string& s) {
-		return s == "-fs" || s == "--file-series"; }
-	);
-	if (it != args.end() && ++it != args.end()) {
-		cloud_series_filename = *it;
-	}
+	std::string cloud_series_filename = get_arg_value(args, "-fs", "--file-series");
 
 	// Output directory
-	std::string output_dir = ".";
-	it = std::find_if(args.begin(), args.end(), [](const std::string& s) {
-		return s == "-o" || s == "--outpur-dir"; }
-	);
-	if (it != args.end() && ++it != args.end()) {
-		output_dir = *it;
-	}
+	std::string output_dir = get_arg_value(args, "-o", "--output-dir", ".");
 
 	// RPLIDAR mode
-	RPLIDARScanModes rplidar_mode = RPLIDARScanModes::SENSITIVITY;
-	it = std::find_if(args.begin(), args.end(), [](const std::string& s) {
-		return s == "-m" || s == "--rplidar-mode"; }
-	);
-	if (it != args.end() && ++it != args.end()) {
-		if (*it == std::to_string(int(RPLIDARScanModes::STANDARD))) {
-			rplidar_mode = RPLIDARScanModes::STANDARD;
-		}
-		else if (*it == std::to_string(int(RPLIDARScanModes::EXPRESS))) {
-			rplidar_mode = RPLIDARScanModes::EXPRESS;
-		}
-		else if (*it == std::to_string(int(RPLIDARScanModes::BOOST))) {
-			rplidar_mode = RPLIDARScanModes::BOOST;
-		}
-		else if (*it == std::to_string(int(RPLIDARScanModes::SENSITIVITY))) {
-			rplidar_mode = RPLIDARScanModes::SENSITIVITY;
-		}
-		else if (*it == std::to_string(int(RPLIDARScanModes::STABILITY))) {
-			rplidar_mode = RPLIDARScanModes::STABILITY;
-		}
-		else {
-			std::cerr << "ERROR: Invalid RPLIDAR mode id." << std::endl;
-		}
+	std::string rplidar_mode_val = get_arg_value(args, "-m", "--rplidar-mode", 
+		std::to_string(int(RPLIDARScanModes::SENSITIVITY)));
+	RPLIDARScanModes rplidar_mode;
+	if (rplidar_mode_val == std::to_string(int(RPLIDARScanModes::STANDARD))) {
+		rplidar_mode = RPLIDARScanModes::STANDARD;
+	}
+	else if (rplidar_mode_val == std::to_string(int(RPLIDARScanModes::EXPRESS))) {
+		rplidar_mode = RPLIDARScanModes::EXPRESS;
+	}
+	else if (rplidar_mode_val == std::to_string(int(RPLIDARScanModes::BOOST))) {
+		rplidar_mode = RPLIDARScanModes::BOOST;
+	}
+	else if (rplidar_mode_val == std::to_string(int(RPLIDARScanModes::SENSITIVITY))) {
+		rplidar_mode = RPLIDARScanModes::SENSITIVITY;
+	}
+	else if (rplidar_mode_val == std::to_string(int(RPLIDARScanModes::STABILITY))) {
+		rplidar_mode = RPLIDARScanModes::STABILITY;
+	}
+	else {
+		std::cerr << "ERROR: Invalid RPLIDAR mode id." << std::endl;
+		return false;
 	}
 
 	// GUI Type
-	GUIType gui_type = GUIType::SFML;
-	it = std::find_if(args.begin(), args.end(), [](const std::string& s) {
-		return s == "-g" || s == "--gui"; }
-	);
-	if (it != args.end() && ++it != args.end()) {
-		if (*it == std::to_string(int(GUIType::TERMINAL))) {
-			gui_type = GUIType::TERMINAL;
-		}
-		else if (*it == std::to_string(int(GUIType::SFML))) {
-			gui_type = GUIType::SFML;
-		}
-		else {
-			std::cerr << "ERROR: Invalid GUI id." << std::endl;
-		}
+	std::string gui_type_val = get_arg_value(args, "-g", "--gui",
+		std::to_string(int(GUIType::SFML)));
+	GUIType gui_type;
+	if (gui_type_val == std::to_string(int(GUIType::TERMINAL))) {
+		gui_type = GUIType::TERMINAL;
+	}
+	else if (gui_type_val == std::to_string(int(GUIType::SFML))) {
+		gui_type = GUIType::SFML;
+	}
+	else {
+		std::cerr << "ERROR: Invalid GUI id." << std::endl;
+		return false;
 	}
 
 	// Scenario
-	ScenarioType scenario_type = ScenarioType::IDLE;
-	it = std::find_if(args.begin(), args.end(), [](const std::string& s) {
-		return s == "-s" || s == "--scenario"; }
-	);
-	if (it != args.end() && ++it != args.end()) {
-		if (*it == std::to_string(int(ScenarioType::IDLE))) {
-			scenario_type = ScenarioType::IDLE;
-		}
-		else if (*it == std::to_string(int(ScenarioType::RECORD_SERIES))) {
-			scenario_type = ScenarioType::RECORD_SERIES;
-		}
-		else if (*it == std::to_string(int(ScenarioType::SCREENSHOT_SERIES))) {
-			scenario_type = ScenarioType::SCREENSHOT_SERIES;
-		}
-		else {
-			std::cerr << "ERROR: Invalid scenario id." << std::endl;
-		}
+	std::string scenario_val = get_arg_value(args, "-s", "--scenario",
+		std::to_string(int(ScenarioType::IDLE)));
+	ScenarioType scenario_type;
+	if (scenario_val == std::to_string(int(ScenarioType::IDLE))) {
+		scenario_type = ScenarioType::IDLE;
+	}
+	else if (scenario_val == std::to_string(int(ScenarioType::RECORD_SERIES))) {
+		scenario_type = ScenarioType::RECORD_SERIES;
+	}
+	else if (scenario_val == std::to_string(int(ScenarioType::SCREENSHOT_SERIES))) {
+		scenario_type = ScenarioType::SCREENSHOT_SERIES;
+	}
+	else {
+		std::cerr << "ERROR: Invalid scenario id." << std::endl;
+		return false;
 	}
 
+	// Initialize the cloud grabber
 	if (!rplidar_port.empty()) {
 		cloud_grabber_ = std::make_unique<CloudRPLIDARPortGrabber>(rplidar_port, 256000, rplidar_mode);
 		if (!cloud_grabber_->get_status()) cloud_grabber_.reset(nullptr);
@@ -199,11 +203,12 @@ bool App::parse_args(std::vector<std::string>& args) {
 		cloud_grabber_ = std::make_unique<CloudFileGrabber>(cloud_filename, 0.2);
 		if (!cloud_grabber_->get_status()) cloud_grabber_.reset(nullptr);
 	}
-
 	if (!cloud_grabber_ && !gui_ && !scenario_) {
+		std::cerr << "ERROR: No input data has been provided." << std::endl;
 		return false;
 	}
 
+	// Initialize the GUI
 	if (gui_type == GUIType::TERMINAL) {
 		gui_ = std::make_unique<TerminalGUI>();
 	}
@@ -212,6 +217,7 @@ bool App::parse_args(std::vector<std::string>& args) {
 		gui_ = std::make_unique<SFMLGUI>(sfml_settings);
 	}
 
+	// Initialize the scenario
 	if (scenario_type == ScenarioType::RECORD_SERIES) {
 		scenario_ = std::make_unique<RecordSeriesScenario>(output_dir);
 	}
@@ -223,8 +229,16 @@ bool App::parse_args(std::vector<std::string>& args) {
 		}
 		else {
 			std::cerr << "ERROR: Selected GUI and scenario are not compatible." << std::endl;
+			return false;
 		}
-		
+	}
+
+	if (!args.empty()) {
+		std::cerr << "WARNING: Unused command line arguments: ";
+		for (const auto& unused_arg : args) {
+			std::cerr << "\"" << unused_arg << "\",";
+		}
+		std::cerr << std::endl;
 	}
 
 	return true;
