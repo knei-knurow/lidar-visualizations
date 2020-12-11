@@ -179,6 +179,9 @@ bool App::parse_args(std::vector<std::string>& args) {
 		else if (*it == std::to_string(int(ScenarioType::RECORD_SERIES))) {
 			scenario_type = ScenarioType::RECORD_SERIES;
 		}
+		else if (*it == std::to_string(int(ScenarioType::SCREENSHOT_SERIES))) {
+			scenario_type = ScenarioType::SCREENSHOT_SERIES;
+		}
 		else {
 			std::cerr << "ERROR: Invalid scenario id." << std::endl;
 		}
@@ -211,6 +214,17 @@ bool App::parse_args(std::vector<std::string>& args) {
 
 	if (scenario_type == ScenarioType::RECORD_SERIES) {
 		scenario_ = std::make_unique<RecordSeriesScenario>(output_dir);
+	}
+	else if (scenario_type == ScenarioType::SCREENSHOT_SERIES) {
+		if (gui_type == GUIType::SFML) {
+			auto gui_ptr = static_cast<SFMLGUI*>(gui_.get());
+			std::function<bool(void)> fn_ptr = std::bind(&SFMLGUI::save_screenshot, gui_ptr);
+			scenario_ = std::make_unique<ScreenshotSeriesScenario>(fn_ptr);
+		}
+		else {
+			std::cerr << "ERROR: Selected GUI and scenario are not compatible." << std::endl;
+		}
+		
 	}
 
 	return true;

@@ -2,12 +2,14 @@
 #include <vector>
 #include <string>
 #include <chrono>
+#include <functional>
 #include "cloud.h"
 #include "cloud-writers.h"
 
 enum class ScenarioType {
 	IDLE,
 	RECORD_SERIES,
+	SCREENSHOT_SERIES,
 };
 
 
@@ -29,10 +31,22 @@ class RecordSeriesScenario
 public:
 	RecordSeriesScenario(const std::string& output_dir, 
 		CoordSystem coord_sys = CoordSystem::CYL);
-	~RecordSeriesScenario();
 	virtual bool update(Cloud& cloud);
 	inline virtual ScenarioType get_type() const { return ScenarioType::RECORD_SERIES; }
 
 private:
 	CloudFileSeriesWriter series_writer_;
+};
+
+
+// Very slow
+class ScreenshotSeriesScenario
+	: public Scenario {
+public:
+	ScreenshotSeriesScenario(std::function<bool()> screenshot_fn);
+	virtual bool update(Cloud& cloud);
+	inline virtual ScenarioType get_type() const { return ScenarioType::SCREENSHOT_SERIES; }
+
+private:
+	std::function<bool()> screenshot_fn_;
 };

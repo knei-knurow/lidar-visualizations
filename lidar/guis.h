@@ -81,6 +81,9 @@ public:
 	inline SFMLGUISettings settings() const { return sets_; }
 	inline SFMLGUISettings& settings() { return sets_; }
 
+	bool save_screenshot();
+	bool save_cloud(const Cloud& cloud);
+
 private:
 	enum class StatusKey {
 		UP,
@@ -97,9 +100,6 @@ private:
 	void render_connected_cloud(const Cloud& cloud, float lightness = 1.0f, bool render_points = true);
 	void render_point(int x, int y, const Color& color);
 	void render_front_line(int x, int y);
-
-	bool save_screenshot();
-	bool save_cloud(const Cloud& cloud);
 
 	float calc_scale(float max_dist);
 	Color calc_color_from_angle(float v, float lightness = 1.0f);
