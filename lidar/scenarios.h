@@ -1,52 +1,51 @@
 #pragma once
-#include <vector>
-#include <string>
 #include <chrono>
 #include <functional>
-#include "cloud.h"
+#include <string>
+#include <vector>
 #include "cloud-writers.h"
+#include "cloud.h"
 
 enum class ScenarioType {
-	IDLE,
-	RECORD_SERIES,
-	SCREENSHOT_SERIES,
+  IDLE,
+  RECORD_SERIES,
+  SCREENSHOT_SERIES,
 };
-
 
 class Scenario {
-public:
-	Scenario() : status_(true) {};
-	virtual ~Scenario() {}
-	virtual bool update(Cloud& cloud) = 0;
-	inline virtual bool get_status() const { return status_; }
-	inline virtual ScenarioType get_type() const = 0;
+ public:
+  Scenario() : status_(true){};
+  virtual ~Scenario() {}
+  virtual bool update(Cloud& cloud) = 0;
+  inline virtual bool get_status() const { return status_; }
+  inline virtual ScenarioType get_type() const = 0;
 
-protected:
-	bool status_;
+ protected:
+  bool status_;
 };
 
+class RecordSeriesScenario : public Scenario {
+ public:
+  RecordSeriesScenario(const std::string& output_dir,
+                       CoordSystem coord_sys = CoordSystem::CYL);
+  virtual bool update(Cloud& cloud);
+  inline virtual ScenarioType get_type() const {
+    return ScenarioType::RECORD_SERIES;
+  }
 
-class RecordSeriesScenario
-	: public Scenario {
-public:
-	RecordSeriesScenario(const std::string& output_dir, 
-		CoordSystem coord_sys = CoordSystem::CYL);
-	virtual bool update(Cloud& cloud);
-	inline virtual ScenarioType get_type() const { return ScenarioType::RECORD_SERIES; }
-
-private:
-	CloudFileSeriesWriter series_writer_;
+ private:
+  CloudFileSeriesWriter series_writer_;
 };
-
 
 // Very slow
-class ScreenshotSeriesScenario
-	: public Scenario {
-public:
-	ScreenshotSeriesScenario(std::function<bool()> screenshot_fn);
-	virtual bool update(Cloud& cloud);
-	inline virtual ScenarioType get_type() const { return ScenarioType::SCREENSHOT_SERIES; }
+class ScreenshotSeriesScenario : public Scenario {
+ public:
+  ScreenshotSeriesScenario(std::function<bool()> screenshot_fn);
+  virtual bool update(Cloud& cloud);
+  inline virtual ScenarioType get_type() const {
+    return ScenarioType::SCREENSHOT_SERIES;
+  }
 
-private:
-	std::function<bool()> screenshot_fn_;
+ private:
+  std::function<bool()> screenshot_fn_;
 };
