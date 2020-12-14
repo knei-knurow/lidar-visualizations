@@ -1,4 +1,5 @@
 #include "app.h"
+#include <algorithm>
 
 //
 // App
