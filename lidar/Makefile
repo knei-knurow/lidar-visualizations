@@ -2,7 +2,7 @@ CXX=g++
 CXXFLAGS=-Wall -std=c++17
 
 lidar: app.o cloud-grabbers.o cloud-writers.o cloud.o guis.o main.o scenarios.o
-	$(CXX) -o lidar app.o cloud-grabbers.o cloud-writers.o cloud.o guis.o main.o scenarios.o
+	$(CXX) -o lidar app.o cloud-grabbers.o cloud-writers.o cloud.o guis.o main.o scenarios.o ../rplidar-sdk/sdk/output/Darwin/Release/librplidar_sdk.a
 
 app.o: app.cpp
 	$(CXX) $(CXXFLAGS) -c app.cpp
