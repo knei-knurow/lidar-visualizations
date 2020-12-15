@@ -7,10 +7,11 @@ This project uses **Slamtec RPLIDAR A3M1** device, about which you can learn bel
 ## Table of contents
 - [Gallery](#gallery)
 - [About RPLIDAR](#about-rplidar)
-    - [References](#references)
 - [Binaries](#binaries)
 - [Compilation](#compilation)
+    - [Linux, MacOS](#linux-macos)
     - [Windows](#windows)
+    - [Windows (Visual Studio)](#windows-visual-studio)
 - [Usage](#usage)
     - [Options](#options)
     - [Scenarios](#senarios)
@@ -37,7 +38,7 @@ Outdoor, lots of trees and shrubs around:
 
 ## About RPLIDAR
 
-This project has been created with the low-cost **Slamtec RPLIDAR A3M1** and SDK provided by its manufacturers. We haven't tested it, but should be compatible with other related Slamtec models. A3M1 supports two important scanning modes depending on whether scans indoor or outdoor (more information in *RPLIDAR User Manual*).
+This project has been created with the low-cost **Slamtec RPLIDAR A3M1** device, and SDK provided by its manufacturers. We haven't tested it, but should be compatible with other related Slamtec models. A3M1 supports two important scanning modes depending on a scanning environment (indoor/outdoor).
 
 |Property|A3M1|
 |:-|-|
@@ -48,7 +49,7 @@ This project has been created with the low-cost **Slamtec RPLIDAR A3M1** and SDK
 |Communication Interface|TTL UART|
 |Communication Speed|256000 bps|
 
-The complete lidar specification is available 
+The complete RPLIDAR specification and documentation is available below:
 
 - [A3M1 website](https://www.slamtec.com/en/Lidar/A3) 
 - [SDK GitHub](https://github.com/Slamtec/rplidar_sdk)
