@@ -7,5 +7,5 @@ Release
 *.xcf
 *.o
 .DS_Store
-rplidar-sdk
+rplidar_sdk
 clouds
