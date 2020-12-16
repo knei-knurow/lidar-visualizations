@@ -77,17 +77,24 @@ TODO
 The project is developed using Visual Studio on Windows. There are some additional dependencies which should be satisfied (actually, you can compile without them but there will be no visualization nor rendering features*).
 
 1. Collect all requirements:
-    - Visual Studio with C++ toolchain.
-    - SFML 2.5.1 graphical library - [https://www.sfml-dev.org/download/sfml/2.5.1/](https://www.sfml-dev.org/download/sfml/2.5.1/).
-    - RPLIDAR SDK - [https://github.com/Slamtec/rplidar_sdk](https://github.com/Slamtec/rplidar_sdk).
+    - Visual Studio with C++ toolchain. [visualstudio.microsoft.com/](https://visualstudio.microsoft.com/)
+    - SFML 2.5.1 graphical library **(32bit only and must match C++ compiler version)** - [sfml-dev.org/download/sfml/2.5.1/](https://www.sfml-dev.org/download/sfml/2.5.1/).
+    - RPLIDAR SDK - [github.com/Slamtec/rplidar_sdk](https://github.com/Slamtec/rplidar_sdk).
 2. Prepare RPLIDAR SDK:
     - Move the directory containing RPLIDAR SDK to the path of this repository. Rename it to `rplidar-sdk`.
+    
     - Install CP2102 driver which allows communicating via USB and UART: `rplidar_sdk/tools/cp2102_driver`.
+    
     - Open VS solution with SDK:  `rplidar_sdk/sdk/workspaces/vc**/sdk_and_demo.sln`.
-    - Go to *Solution Explorer,* select `rplidar_driver` and build it in *Debug* and *Release* mode. This should produce two `.lib` files which will be used in our final app. You can find them here: `rplidar_sdk\sdk\output`. These files will be automatically found by the LV project, so don't move them.
+    
+    - Go to *Solution Explorer* window, find `rplidar_driver` and open *Properties* window. Switch *Configuration* to *Release*, go to *C/C++/CodeGeneration* and change *Runtime Library* property to *Multi-threaded DLL (/MD)*. Apply changes and compile `rplidar_driver` in *Debug* and *Release* mode. This should produce two `.lib` files which will be used in our final app. You can find them here: `rplidar_sdk\sdk\output`. These files will be automatically found by the LV project, so don't move them.
+    
+      **Note:** If you want to compile the examples derived with the SDK, you should change *Runtime Library* property back to *Multi-threaded (/MT)* in *Release* mode because it might cause linker errors
+    
     - That's it. SDK is ready and you can close the VS project.
 3. Prepare SFML 2.5.1.:
-    - nah, compilation required
+    
+    - Move the directory containing SFML 2.5.1 to the path of this repository and rename it to `SFML-2.5.1` **OR** update the paths in *sfml-debug.props* and *sfml-release.props*.
 4. Build:
     - Open the VS solution of *lidar-visualizations* - `lidar/lidar.sln`.
     - Compile in *Debug* or *Release* mode (in *Debug* mode SFML is linked dynamically, so you have to provide necessary DLL's aside your output executable - you will find them in `SFML-2.5.1\bin`; in *Release* mode SFML is linked statically).
@@ -95,7 +102,7 @@ The project is developed using Visual Studio on Windows. There are some addition
 **\*** `lidar.sln` uses several project property files (*rplidar.props*, *sfml-debug.props*, *sfml-release.props*) which consist of relative include and library paths to RPLIDAR SDK and SFML, and define macros enabling sections of code that requires the specified dependencies (`USING_RPLIDAR`, `USING_SFML`). For example, if you remove SFML property files from the project, a compiler won't be looking for SFML and finally it build the program without the SFML GUI. You can do the same with RPLIDAR, so you won't be able to receive data from it.
 
 ## Usage
-If successfully downloaded or compiled LV, you are able to start some scanning and visualizing. The program can be controlled via command line in such a way:
+If you successfully downloaded or compiled LV, you are able to start some scanning and visualizing. The program can be controlled via command line in such a way:
 
 ```
 lidar [options]
@@ -120,7 +127,7 @@ lidar [options]
 
 ### Scenarios
 
-Scenarios are sets of actions which are executed just after grabbing the cloud data, and just before its visualization by the GUI. They allow to add more advanced mechanics in the future.
+Scenarios are sets of actions which are executed just after grabbing the cloud data, and just before its visualization by the GUI.
 
 ```
 0    Do nothing, just grab a cloud and visualize (default).
