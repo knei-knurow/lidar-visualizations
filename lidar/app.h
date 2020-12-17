@@ -1,4 +1,5 @@
 #pragma once
+#include <algorithm>
 #include "cloud-grabbers.h"
 #include "guis.h"
 #include "scenarios.h"
