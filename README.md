@@ -1,8 +1,8 @@
 # LIDAR Visualizations
 
-This utility takes advantage of real-time and/or preloaded LIDAR data. It is the first time I'm messing around which such a device, so I've decided that the first step would be creating my own data visualization software which also offers some features related to saving and reading time series of point clouds and some experimental calculations. There is a quite large potential in LIDAR devices and this technology can be found in various applications like self-driven vehicles, robotics, terrain mapping etc. 
-
-This project uses **Slamtec RPLIDAR A3M1** device, about which you can learn below.
+This utility takes advantage of real-time and/or preloaded LIDAR data. It is the first time I'm messing around which such a device, so I've decided that the first step would be creating my own data visualization software which also offers some features related to saving and reading time series of point clouds and some experimental calculations. There is a quite large potential in LIDAR devices and this technology can be found in various applications like self-driving vehicles, robotics, terrain mapping etc. 
+^^HAS
+This project uses **Slamtec RPLIDAR A3M1** device (described below).
 
 ## Table of contents
 - [Gallery](#gallery)
@@ -28,7 +28,7 @@ Indoor scanning:
 
 ![doc/screenshots/garden.gif](doc/screenshots/room.gif)
 
-Outdoor, observing riding cars:
+Outdoor, obervating of passing cars:
 
 ![doc/screenshots/cars.gif](doc/screenshots/cars.gif)
 
@@ -74,7 +74,7 @@ TODO
 
 ### Windows (Visual Studio)
 
-The project is developed using Visual Studio on Windows. There are some additional dependencies which should be satisfied (actually, you can compile without them but there will be no visualization nor rendering features*).
+The project is developed using Visual Studio on Windows. There are some additional dependencies which should be considered (actually, you can compile without them but there will be no visualization nor rendering features*).
 
 1. Collect all requirements:
     - Visual Studio with C++ toolchain. [visualstudio.microsoft.com/](https://visualstudio.microsoft.com/)
@@ -87,7 +87,7 @@ The project is developed using Visual Studio on Windows. There are some addition
     
     - Open VS solution with SDK:  `rplidar_sdk/sdk/workspaces/vc**/sdk_and_demo.sln`.
     
-    - Go to *Solution Explorer* window, find `rplidar_driver` and open *Properties* window. Switch *Configuration* to *Release*, go to *C/C++/CodeGeneration* and change *Runtime Library* property to *Multi-threaded DLL (/MD)*. Apply changes and compile `rplidar_driver` in *Debug* and *Release* mode. This should produce two `.lib` files which will be used in our final app. You can find them here: `rplidar_sdk\sdk\output`. These files will be automatically found by the LV project, so don't move them.
+    - Go to *Solution Explorer* window, find `rplidar_driver` and open *Properties* window. Switch *Configuration* to *Release*, go to *C/C++/CodeGeneration* and change *Runtime Library* property to *Multi-threaded DLL (/MD)*. Apply changes and compile `rplidar_driver` in *Debug* and *Release* mode. This will create two `.lib` files which will be used in our final app. You can find them here: `rplidar_sdk\sdk\output`. These files will be automatically found by the LV project, so don't move them.
     
       **Note:** If you want to compile the examples derived with the SDK, you should change *Runtime Library* property back to *Multi-threaded (/MT)* in *Release* mode because it might cause linker errors
     
@@ -99,7 +99,7 @@ The project is developed using Visual Studio on Windows. There are some addition
     - Open the VS solution of *lidar-visualizations* - `lidar/lidar.sln`.
     - Compile in *Debug* or *Release* mode (in *Debug* mode SFML is linked dynamically, so you have to provide necessary DLL's aside your output executable - you will find them in `SFML-2.5.1\bin`; in *Release* mode SFML is linked statically).
 
-**\*** `lidar.sln` uses several project property files (*rplidar.props*, *sfml-debug.props*, *sfml-release.props*) which consist of relative include and library paths to RPLIDAR SDK and SFML, and define macros enabling sections of code that requires the specified dependencies (`USING_RPLIDAR`, `USING_SFML`). For example, if you remove SFML property files from the project, a compiler won't be looking for SFML and finally it build the program without the SFML GUI. You can do the same with RPLIDAR, so you won't be able to receive data from it.
+**\*** `lidar.sln` uses several project property files (*rplidar.props*, *sfml-debug.props*, *sfml-release.props*) which consist of relative include and library paths to RPLIDAR SDK and SFML, and define macros enabling sections of code that requires the specified dependencies (`USING_RPLIDAR`, `USING_SFML`). For example, if you remove SFML property files from the project, a compiler won't be looking for SFML and finally it will build the program without the SFML GUI. You can do the same with RPLIDAR, so you won't be able to receive data from it.
 
 ## Usage
 If you successfully downloaded or compiled LV, you are able to start some scanning and visualizing. The program can be controlled via command line in such a way:
@@ -143,11 +143,11 @@ GUIs are responsible for the visual layer of the application and interacting wit
 1    SFML GUI - default, the most beautiful one from the gallery.
 ```
 
-**Note**: SFML GUI is unavailable, if it hasn't been compiled into the project (disabled `USING_SFML` macro).
+**Note**: If SFML GUI hasn't been compiled into the project (disabled `USING_SFML` macro), it will be unavailable.
 
 ### RPLIDAR Modes
 
-RPLIDAR supports several scanning modes which differs by its applications (indoor/outdoor), distance range, and sample rate. More details can be found in the documentation of the product. You should consider only the option 3 and 4, because the first three options are here due to compatibility reasons and don't produce spectacular results.
+RPLIDAR supports several scanning modes which differs by its application (indoor/outdoor), distance range, and sample rate. More details can be found in the documentation of the product. You should only consider the option 3 and 4, because the first three ones are here due to compatibility reasons and don't produce spectacular results.
 
 ```
 0    Standard
@@ -158,10 +158,10 @@ RPLIDAR supports several scanning modes which differs by its applications (indoo
 ```
 
 ## Datasets
-As mentioned earlier, LV allows you to save and load point cloud data from your local disk instead of grabbing it from the RPLIDAR driver. The format of input and output datasets is very straightforward and can be modified with a basic text editor. We can distinguish two variants of data - **point cloud** and **point cloud series**.
+As mentioned earlier, LV allows you to save and load point cloud data from your local disk instead of grabbing it from the RPLIDAR driver. The format of input and output datasets is very straightforward and can be modified with a basic text editor. We can distinguish two variants of the data - **point cloud** and **point cloud series**.
 
 ### Point cloud
-Files contain data of a single point cloud (e.g. a full 360° scan, multiple combined ones). Each line (except comments which must start with `#`) represents a single point which consists of an **angle value [°]** and a **distance value [mm]**. Both may be a floating point number, and have to be separated by any kind of white characters.
+Files contain data of a single point cloud (e.g. a full 360° scan, combined scan). Each line (except for comments which must start with `#`) represents a single point which consists of an **angle value [°]** and a **distance value [mm]**. Both may be a floating point number, and have to be separated by any kind of white characters.
 
 **Example**:
 
@@ -182,7 +182,7 @@ lidar -f datasets/example.txt
 ![doc/screenshots/example.gif](doc/screenshots/example.jpg)
 
 ### Point cloud series
-Files contain a list of point clouds. This variant can be used to record a series of grabbed clouds. The rules are the same as in the previous paragraph, but there are some special lines starting with `!` which separate two point clouds. Each line marked with `!` should consists of the **ID number of the following point cloud** and **number of milliseconds elapsed from grabbing the previous one**. Clouds should be sorted by their ID number.
+Files contain a list of point clouds. This variant can be used to record a series of captured clouds. The rules are the same as in the previous paragraph, but there are some special lines starting with `!` which separates two point clouds. Each line marked with `!` should consist of the **ID number of the following point cloud** and **number of milliseconds elapsed from grabbing the previous one**. Clouds should be sorted by their ID number.
 
 Example:
 ```
@@ -211,7 +211,7 @@ lidar -fs datasets/example-series.txt
 
 ## RPLIDAR with STM32
 
-I also encourage you to follow my friend's project in which he combined lidar technology with a portable STM32 microcontroller, and created a similar visualization software but on a completely different low-level platform.
+I also encourage you to follow my friend's project in which he combined lidar technology with a portable STM32 microcontroller. He created a similar visualization software based on a completely different low-level platform.
 
 **GitHub**: [https://github.com/knei-knurow/lidar-stm32](https://github.com/knei-knurow/lidar-stm32)
 
@@ -219,6 +219,6 @@ I also encourage you to follow my friend's project in which he combined lidar te
 
 ## Thanks
 
-This project was developed under Electronics and Computer Science club in Knurów (KNEI for short) where lots of amazing projects and ideas come from. Have a look at our website - [https://knei.pl/](https://knei.pl/) - unfortunately, at the moment, only available in Polish. Check out our GitHub too - https://github.com/knei-knurow.
+This project was developed within Electronics and Computer Science Club in Knurów (KNEI for short) where lots of amazing projects and ideas come from. Have a look at our website - [https://knei.pl/](https://knei.pl/) - unfortunately, at the moment, only available in Polish. Check out our GitHub too - https://github.com/knei-knurow.
 
 Numerous packages with colourful electronic gadgets like RPLIDAR have been granted to us by our friends from [KAMAMI.pl](http://kamami.pl).
