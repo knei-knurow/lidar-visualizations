@@ -1,7 +1,7 @@
 # LIDAR Visualizations
 
-This utility takes advantage of real-time and/or preloaded LIDAR data. It is the first time I'm messing around which such a device, so I've decided that the first step would be creating my own data visualization software which also offers some features related to saving and reading time series of point clouds and some experimental calculations. There is a quite large potential in LIDAR devices and this technology can be found in various applications like self-driving vehicles, robotics, terrain mapping etc. 
-^^HAS
+This utility takes advantage of real-time and/or preloaded LIDAR data. It is the first time I'm messing around which such a device, so I've decided that the first step would be creating my own data visualization software which also offers some features related to saving and reading time series of point clouds and some experimental calculations. LIDAR devices have a quite large potential and this technology can be found in various applications like self-driving vehicles, robotics, terrain mapping etc. 
+
 This project uses **Slamtec RPLIDAR A3M1** device (described below).
 
 ## Table of contents
