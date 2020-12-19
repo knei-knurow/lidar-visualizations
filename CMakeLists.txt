@@ -3,11 +3,8 @@ project(lidar-vis)
 set(CMAKE_CXX_STANDARD 14)
 
 # Variables which can be modified by the user
-set(USING_SFML OFF CACHE BOOL "Compilation with SFML.")
+set(USING_SFML ON CACHE BOOL "Compilation with SFML.")
 set(USING_RPLIDAR OFF CACHE BOOL "Compilation with RPLIDAR SDK.")
-
-set(BUILD_SFML OFF CACHE BOOL "Build SFML.")
-set(BUILD_RPLIDAR_SDK OFF CACHE BOOL "Build RPLIDAR SDK.")
 
 # Project paths
 set(LIDAR_VIS_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lidar/")
@@ -92,4 +89,19 @@ if(USING_RPLIDAR)
 	)
 
 	add_compile_definitions(USING_RPLIDAR)
+endif()
+
+if(USING_SFML)
+	find_package(libsfml REQUIRED)
+
+	#add_library(libsfml-graphics.so SHARED IMPORTED)
+	# target_include_directories(lidar-vis PRIVATE 
+	#	/usr/include
+	#)
+	#target_link_libraries(lidar-vis
+	#	-L/usr/lib/x86_64-linux-gnu/libsfml-system.so
+	#	-L/usr/lib/x86_64-linux-gnu/libsfml-window.so
+	#	-L/usr/lib/x86_64-linux-gnu/libsfml-graphics.so
+	#)
+	add_compile_definitions(USING_SFML)
 endif()
