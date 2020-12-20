@@ -5,6 +5,7 @@ LIBS=-lsfml-graphics -lsfml-window -lsfml-system
 SFML=${CURDIR}/sfml
 
 lol:
+	@echo "lol"
 	ls $(SFML)/include/SFML
 
 lidar: lidar/app.o lidar/cloud-grabbers.o lidar/cloud-writers.o lidar/cloud.o lidar/guis.o lidar/main.o lidar/scenarios.o
