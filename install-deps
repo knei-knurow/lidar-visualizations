@@ -1,0 +1,10 @@
+#/bin/bash
+
+# This script installs required dependencies (i.e clones them from GitHub).
+# Those dependencies are: SFML, RPLIDAR_SDK
+
+sfml_url="https://github.com/SFML/SFML.git"
+rplidar_url="https://github.com/Slamtec/rplidar_sdk.git"
+
+git clone "$sfml_url"
+git clone "$rplidar_url"
