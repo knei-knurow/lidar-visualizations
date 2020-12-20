@@ -1,10 +1,8 @@
 CXX=g++
-CXXFLAGS=-std=c++17
+CXXFLAGS=-std=c++17 -DUSING_SFML
 LIBS=-lsfml-graphics -lsfml-window -lsfml-system
 
 SFML=/usr/local/Cellar/sfml/2.5.1
-# SFML_LIB=$(SFML)/lib
-# SFML_INCLUDE=$(SFML)/include
 
 lidar: lidar/app.o lidar/cloud-grabbers.o lidar/cloud-writers.o lidar/cloud.o lidar/guis.o lidar/main.o lidar/scenarios.o sfml
 		$(CXX) -o vil \
