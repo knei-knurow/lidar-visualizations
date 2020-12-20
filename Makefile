@@ -9,16 +9,16 @@ lol:
 	ls $(SFML)/include/SFML
 
 lidar: lidar/app.o lidar/cloud-grabbers.o lidar/cloud-writers.o lidar/cloud.o lidar/guis.o lidar/main.o lidar/scenarios.o
-		$(CXX) --output vil \
-		lidar/app.o \
-		lidar/cloud-grabbers.o \
-		lidar/cloud-writers.o \
-		lidar/cloud.o \
-		lidar/guis.o \
-		lidar/main.o \
-		lidar/scenarios.o \
-		-L$(SFML)/lib \
-		$(LIBS)
+	$(CXX) --output vil \
+	lidar/app.o \
+	lidar/cloud-grabbers.o \
+	lidar/cloud-writers.o \
+	lidar/cloud.o \
+	lidar/guis.o \
+	lidar/main.o \
+	lidar/scenarios.o \
+	-L$(SFML)/lib \
+	$(LIBS)
 
 app.o: lidar/app.cpp
 	$(CXX) -c lidar/app.cpp
@@ -42,4 +42,4 @@ scenarios.o: lidar/scenarios.cpp
 	$(CXX) -c lidar/scenarios.cpp
 
 clean:
-	rm -f lidar/*.o vil
+	rm -f *.o lidar/*.o vil
