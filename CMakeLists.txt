@@ -16,17 +16,6 @@ set(RPLIDAR_SDK_SRC_DIR "${RPLIDAR_SDK_DIR}/sdk/src")
 set(RPLIDAR_SDK_INCLUDE_DIR "${RPLIDAR_SDK_DIR}/sdk/include")
 
 
-# Platform-specifies settings
-if(WIN32)
-	# TODO
-elseif(APPLE)
-	# TODO
-elseif(UNIX)
-	# TODO
-else()
-	message(FATAL_ERROR "Unsupported platform.")
-endif()
-
 # Build RPLIDAR SDK from source using its own delivered Makefile
 if(BUILD_RPLIDAR_SDK)
 	add_custom_target(
@@ -92,7 +81,34 @@ if(USING_RPLIDAR)
 endif()
 
 if(USING_SFML)
-	find_package(libsfml REQUIRED)
+	target_include_directories(lidar-vis PRIVATE 
+		${CMAKE_CURRENT_SOURCE_DIR}/sfml/include
+	)
+
+	target_link_libraries(lidar-vis PRIVATE
+		${CMAKE_CURRENT_SOURCE_DIR}/sfml/lib/libsfml-system.so
+		${CMAKE_CURRENT_SOURCE_DIR}/sfml/lib/libsfml-window.so
+		${CMAKE_CURRENT_SOURCE_DIR}/sfml/lib/libsfml-graphics.so
+	)
+
+
+	# include(FindPkgConfig)
+	#pkg_search_module(SFML REQUIRED sfml-all)
+	#target_include_directories(lidar-vis PRIVATE 
+	#	${SFML_INCLUDEDIR}/SFML
+	#)
+	#target_link_libraries(lidar-vis PRIVATE 
+	#	${SFML_LIBDIR}/libsfml-system
+	#	${SFML_LIBDIR}/libsfml-window
+	#	${SFML_LIBDIR}/libsfml-graphics
+	#)
+	#message(">>>${SFML_INCLUDEDIR}")
+	
+	#if(SFML_ALL
+	#target_link_libraries(lidar-vis PRIVATE sfml-all)
+
+
+	#find_package(sfml-window REQUIRED)
 
 	#add_library(libsfml-graphics.so SHARED IMPORTED)
 	# target_include_directories(lidar-vis PRIVATE 
