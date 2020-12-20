@@ -1,8 +1,12 @@
 CXX=g++
-CXXFLAGS=-Wall -std=c++17
+CXXFLAGS=-std=c++17
 LIBS=-lsfml-graphics -lsfml-window -lsfml-system
 
-lidar: lidar/app.o lidar/cloud-grabbers.o lidar/cloud-writers.o lidar/cloud.o lidar/guis.o lidar/main.o lidar/scenarios.o
+SFML=/usr/local/Cellar/sfml/2.5.1
+# SFML_LIB=$(SFML)/lib
+# SFML_INCLUDE=$(SFML)/include
+
+lidar: lidar/app.o lidar/cloud-grabbers.o lidar/cloud-writers.o lidar/cloud.o lidar/guis.o lidar/main.o lidar/scenarios.o sfml
 		$(CXX) -o vil \
 		lidar/app.o \
 		lidar/cloud-grabbers.o \
@@ -11,11 +15,14 @@ lidar: lidar/app.o lidar/cloud-grabbers.o lidar/cloud-writers.o lidar/cloud.o li
 		lidar/guis.o \
 		lidar/main.o \
 		lidar/scenarios.o \
-		-L${CURDIR}/SFML/lib $(LIBS)
-		# -L${CURDIR}/rplidar_sdk/sdk/output/Darwin/Release -lrplidar_sdk	\
+		-L$(SFML)/lib \
+		$(LIBS)
+
+sfml:
+	$(CXX) $(CXXFLAGS) -I$(SFML)/include
 
 app.o: lidar/app.cpp
-	$(CXX) $(CXXFLAGS) -c lidar/app.cpp -I${CURDIR}/SFML/include
+	$(CXX) $(CXXFLAGS) -c lidar/app.cpp
 
 cloud-grabbers.o: lidar/cloud-grabbers.cpp
 	$(CXX) $(CXXFLAGS) -c lidar/cloud-grabbers.cpp
