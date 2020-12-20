@@ -21,25 +21,25 @@ lidar: lidar/app.o lidar/cloud-grabbers.o lidar/cloud-writers.o lidar/cloud.o li
 	$(LIBS)
 
 app.o: lidar/app.cpp
-	$(CXX) -c lidar/app.cpp
+	$(CXX) $(CPPFLAGS) -c lidar/app.cpp -I$(SFML)/include
 
 cloud-grabbers.o: lidar/cloud-grabbers.cpp
-	$(CXX) -c lidar/cloud-grabbers.cpp
+	$(CXX) $(CPPFLAGS) -c lidar/cloud-grabbers.cpp -I$(SFML)/include
 
 cloud-writers.o: lidar/cloud-writers.cpp
-	$(CXX) -c lidar/cloud-writers.cpp
+	$(CXX) $(CPPFLAGS) -c lidar/cloud-writers.cpp -I$(SFML)/include
 
 cloud.o: lidar/cloud.cpp
-	$(CXX) -c lidar/cloud.cpp
+	$(CXX) $(CPPFLAGS) -c lidar/cloud.cpp -I$(SFML)/include
 
 guis.o: lidar/guis.cpp
-	$(CXX) -c lidar/guis.cpp -I$(SFML)/include
+	$(CXX) $(CPPFLAGS) -c lidar/guis.cpp -I$(SFML)/include
 
 main.o: lidar/main.cpp
-	$(CXX) -c lidar/main.cpp
+	$(CXX) $(CPPFLAGS) -c lidar/main.cpp -I$(SFML)/include
 
 scenarios.o: lidar/scenarios.cpp
-	$(CXX) -c lidar/scenarios.cpp
+	$(CXX) $(CPPFLAGS) -c lidar/scenarios.cpp -I$(SFML)/include
 
 clean:
 	rm -f *.o lidar/*.o vil
