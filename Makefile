@@ -2,9 +2,12 @@ CXX=g++
 CPPFLAGS=-std=c++17 -DUSING_SFML
 LIBS=-lsfml-graphics -lsfml-window -lsfml-system
 
-SFML=/usr/local/Cellar/sfml/2.5.1
+SFML=${CURDIR}/sfml
 
-lidar: lidar/app.o lidar/cloud-grabbers.o lidar/cloud-writers.o lidar/cloud.o lidar/guis.o lidar/main.o lidar/scenarios.o sfml
+lol:
+	ls $(SFML)/include/SFML
+
+lidar: lidar/app.o lidar/cloud-grabbers.o lidar/cloud-writers.o lidar/cloud.o lidar/guis.o lidar/main.o lidar/scenarios.o
 		$(CXX) --output vil \
 		lidar/app.o \
 		lidar/cloud-grabbers.o \
@@ -15,9 +18,6 @@ lidar: lidar/app.o lidar/cloud-grabbers.o lidar/cloud-writers.o lidar/cloud.o li
 		lidar/scenarios.o \
 		-L$(SFML)/lib \
 		$(LIBS)
-
-sfml:
-	$(CXX) -I$(SFML)/include
 
 app.o: lidar/app.cpp
 	$(CXX) -c lidar/app.cpp
@@ -32,7 +32,7 @@ cloud.o: lidar/cloud.cpp
 	$(CXX) -c lidar/cloud.cpp
 
 guis.o: lidar/guis.cpp
-	$(CXX) -c lidar/guis.cpp
+	$(CXX) -c lidar/guis.cpp -I$(SFML)/include
 
 main.o: lidar/main.cpp
 	$(CXX) -c lidar/main.cpp

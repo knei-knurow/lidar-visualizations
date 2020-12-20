@@ -3,7 +3,7 @@
 .vscode
 
 # dependency dirs
-SFML
+sfml
 rplidar_sdk
 
 # generated stuff
