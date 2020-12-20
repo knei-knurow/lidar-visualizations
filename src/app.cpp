@@ -166,6 +166,10 @@ bool App::parse_args(std::vector<std::string>& args) {
     std::cerr << "ERROR: Invalid RPLIDAR mode id." << std::endl;
     return false;
   }
+
+  // RPLIDAR RPM
+  int rplidar_rpm = 660;
+  std::stringstream(get_arg_value(args, "-r", "--rpm")) >> rplidar_rpm;
 #endif
 
   // GUI
@@ -215,7 +219,7 @@ bool App::parse_args(std::vector<std::string>& args) {
 #ifdef USING_RPLIDAR
   else if (!rplidar_port.empty()) {
     cloud_grabber_ = std::make_unique<CloudRPLIDARPortGrabber>(
-        rplidar_port, 256000, rplidar_mode);
+        rplidar_port, 256000, rplidar_mode, rplidar_rpm);
     if (!cloud_grabber_->get_status())
       cloud_grabber_.reset(nullptr);
   }

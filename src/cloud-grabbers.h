@@ -44,7 +44,8 @@ class CloudRPLIDARPortGrabber : public CloudGrabber {
   CloudRPLIDARPortGrabber(
       std::string portname,
       int baudrate,
-      RPLIDARScanModes scan_mode = RPLIDARScanModes::SENSITIVITY);
+      RPLIDARScanModes scan_mode = RPLIDARScanModes::SENSITIVITY,
+      int rpm = 660);
   virtual ~CloudRPLIDARPortGrabber();
   virtual bool read(Cloud& cloud);
 
@@ -60,6 +61,7 @@ class CloudRPLIDARPortGrabber : public CloudGrabber {
   const std::string portname_;
   const int baudrate_;
   const RPLIDARScanModes scan_mode_;
+  int rpm_;
   rplidar::RPlidarDriver* driver_;
   rplidar_response_measurement_node_hq_t* buffer_;
   size_t buffer_size_;

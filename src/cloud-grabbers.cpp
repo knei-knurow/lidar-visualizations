@@ -6,12 +6,20 @@
 #ifdef USING_RPLIDAR
 CloudRPLIDARPortGrabber::CloudRPLIDARPortGrabber(std::string portname,
                                                  int baudrate,
-                                                 RPLIDARScanModes scan_mode)
+                                                 RPLIDARScanModes scan_mode,
+                                                 int rpm)
     : portname_(portname), baudrate_(baudrate), scan_mode_(scan_mode) {
   driver_ = rplidar::RPlidarDriver::CreateDriver();
   buffer_size_ = rplidar::RPlidarDriver::MAX_SCAN_NODES;
   buffer_ = new rplidar_response_measurement_node_hq_t[buffer_size_];
-  launch();
+  if (rpm < 170 || rpm > 1023) {
+      std::cerr << "ERROR: RPM value should be between 170 and 1023." << std::endl;
+      rpm = 660;
+  }
+  rpm_ = rpm;
+  if (!launch()) {
+      stop();
+  }
 }
 
 CloudRPLIDARPortGrabber::~CloudRPLIDARPortGrabber() {
@@ -138,7 +146,6 @@ bool CloudRPLIDARPortGrabber::launch() {
   std::cout << "Connection established." << std::endl;
 
   print_info();
-  print_health();
   std::vector<rplidar::RplidarScanMode> scan_modes;
   _u16 mode;
   print_scan_modes(scan_modes, mode);
@@ -150,7 +157,14 @@ bool CloudRPLIDARPortGrabber::launch() {
     status_ = false;
     return false;
   }
-
+  std::cout << "Setting motor speed to [rpm]: " << rpm_ << std::endl;
+  res = driver_->setMotorPWM(rpm_);
+  if (IS_FAIL(res)) {
+      std::cout << "ERROR: Unable to set motor RPM." << std::endl;
+      status_ = false;
+      return false;
+  }
+  print_health();
   res = driver_->startScanExpress(false, _u16(scan_mode_));
   if (IS_FAIL(res)) {
     std::cout << "ERROR: Unable to start scanning." << std::endl;
