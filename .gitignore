@@ -1,11 +1,18 @@
-SFML-2.5.1
+# tools
 .vs
 .vscode
-Debug
+
+# dependency dirs
+sfml
+rplidar_sdk
+
+# generated stuff
 Release
+Debug
+*.o
+vil
+
+# other
 *.user
 *.xcf
-*.o
 .DS_Store
-rplidar_sdk
-clouds

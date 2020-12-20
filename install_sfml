@@ -1,0 +1,57 @@
+#/bin/bash
+
+# This script installs SFML. It detects whether the user is
+# running Linux or macOS.
+
+# _log prints its first argument to the standard output, if the
+# global variable verbose is set to true. If it is false, it does
+# nothing.
+_log() {
+  if [ $verbose = true ]; then
+    printf "$1"
+  fi
+}
+
+### Actual beginning.
+
+set -e
+
+verbose=false
+if [[ "$1" = "-v" || "$1" = "--verbose" ]]; then
+  verbose=true
+fi
+
+if [ -d "sfml" ]; then
+  printf "install_sfml: sfml directory already exists\n"
+  exit 1
+fi
+
+
+download_url="null"
+case "$(uname -s)" in
+  Linux*)
+    download_url="https://www.sfml-dev.org/files/SFML-2.5.1-linux-gcc-64-bit.tar.gz"
+    _log "install_sfml: detected Linux host\n"
+  ;;
+  Darwin*)
+    download_url="https://www.sfml-dev.org/files/SFML-2.5.1-macOS-clang.tar.gz"
+    _log "install_sfml: detected macOS host\n"
+  ;;
+  *)
+    printf "install_sfml: error: unknown operating system\n"
+    exit 1
+  ;;
+esac
+
+_log "install_sfml: downloading SFML..."
+curl -Ss "$download_url" > sfml.zip
+_log "ok\n"
+
+_log "install_sfml: extracting SFML..."
+tar -xf sfml.zip
+_log "ok\n"
+
+rm sfml.zip
+
+printf "install_sfml: done\n"
+printf 'install_sfml: now you must rename the extracted directory to "sfml"\n'
