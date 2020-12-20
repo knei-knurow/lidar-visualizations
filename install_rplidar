@@ -2,6 +2,15 @@
 
 # This script installs RPLIDAR SDK.
 
+# _log prints its first argument to the standard output, if the
+# global variable verbose is set to true. If it is false, it does
+# nothing.
+_log() {
+  if [ $verbose = true ]; then
+    printf "$1"
+  fi
+}
+
 set -e
 
 verbose=false
@@ -11,4 +20,9 @@ fi
 
 rplidar_url="https://github.com/Slamtec/rplidar_sdk.git"
 
-git clone "$rplidar_url"
+
+_log "install_rplidar: cloning rplidar_sdk..."
+git clone "$rplidar_url" &>/dev/null
+_log "ok\n"
+
+printf "install_rplidar: done\n"
