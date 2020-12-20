@@ -1,0 +1,14 @@
+#/bin/bash
+
+# This script installs RPLIDAR SDK.
+
+set -e
+
+verbose=false
+if [[ "$1" = "-v" || "$1" = "--verbose" ]]; then
+  verbose=true
+fi
+
+rplidar_url="https://github.com/Slamtec/rplidar_sdk.git"
+
+git clone "$rplidar_url"
