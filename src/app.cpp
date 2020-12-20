@@ -143,8 +143,8 @@ bool App::parse_args(std::vector<std::string>& args) {
   // Output directory
   std::string output_dir = get_arg_value(args, "-o", "--output-dir", ".");
 
-// RPLIDAR mode
 #ifdef USING_RPLIDAR
+  // RPLIDAR mode
   std::string rplidar_mode_val =
       get_arg_value(args, "-m", "--rplidar-mode",
                     std::to_string(int(RPLIDARScanModes::SENSITIVITY)));
@@ -168,7 +168,7 @@ bool App::parse_args(std::vector<std::string>& args) {
   }
 #endif
 
-  // GUI Type
+  // GUI
   std::string gui_type_val =
       get_arg_value(args, "-g", "--gui", std::to_string(int(GUIType::SFML)));
   GUIType gui_type;
@@ -232,6 +232,25 @@ bool App::parse_args(std::vector<std::string>& args) {
 #ifdef USING_SFML
   else if (gui_type == GUIType::SFML) {
     SFMLGUISettings sfml_settings;
+
+    unsigned colormap_temp = -1, display_mode_temp = -1;
+    std::stringstream(get_arg_value(args, "-W", "--width")) >> sfml_settings.width;
+    std::stringstream(get_arg_value(args, "-H", "--height")) >> sfml_settings.height;
+
+    if (bool(std::stringstream(get_arg_value(args, "-C", "--colormap")) >> colormap_temp))
+      sfml_settings.colormap = static_cast<SFMLGUISettings::Colormap>
+      (colormap_temp % SFMLGUISettings::Colormap::COLORMAP_COUNT);
+
+    if (bool(std::stringstream(get_arg_value(args, "-M", "--ptr-mode")) >> display_mode_temp))
+      sfml_settings.pts_display_mode = static_cast<SFMLGUISettings::PtsDispayMode>
+      (display_mode_temp % SFMLGUISettings::PtsDispayMode::PTS_DISPLAY_MODE_COUNT);
+
+    if (bool(std::stringstream(get_arg_value(args, "-S", "--scale")) >> sfml_settings.scale)) {
+        sfml_settings.autoscale = false;
+    }
+
+    sfml_settings.output_dir = output_dir;
+
     gui_ = std::make_unique<SFMLGUI>(sfml_settings);
   }
 #endif
@@ -258,7 +277,7 @@ bool App::parse_args(std::vector<std::string>& args) {
   if (!args.empty()) {
     std::cerr << "WARNING: Unused command line arguments: ";
     for (const auto& unused_arg : args) {
-      std::cerr << "\"" << unused_arg << "\",";
+      std::cerr << "\"" << unused_arg << "\" ";
     }
     std::cerr << std::endl;
   }

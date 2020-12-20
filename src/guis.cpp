@@ -25,6 +25,8 @@ bool TerminalGUI::update(const Cloud& cloud) {
 SFMLGUI::SFMLGUI(const SFMLGUISettings& settings)
     : cloud_writer_(settings.output_dir) {
   sets_ = settings;
+  sets_.origin_x = sets_.width / 2;
+  sets_.origin_y = sets_.height / 2;
 
   sf::ContextSettings window_settings;
   window_settings.antialiasingLevel = sets_.antialiasing;
@@ -38,6 +40,8 @@ SFMLGUI::SFMLGUI(const SFMLGUISettings& settings)
   }
 
   screenshots_cnt_ = 0;
+
+
 }
 
 bool SFMLGUI::update(const Cloud& cloud) {
@@ -93,6 +97,7 @@ void SFMLGUI::handle_input(const Cloud& cloud) {
       sets_.origin_y = event.size.height / 2;
       sf::FloatRect visible_area(0, 0, event.size.width, event.size.height);
       window_.setView(sf::View(visible_area));
+      std::cout << "Window resized: " << event.size.width << "x" << event.size.height << std::endl;
     }
     if (event.type == sf::Event::Closed)
       sets_.running = false;
