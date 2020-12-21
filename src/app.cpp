@@ -249,9 +249,12 @@ bool App::parse_args(std::vector<std::string>& args) {
       sfml_settings.pts_display_mode = static_cast<SFMLGUISettings::PtsDispayMode>
       (display_mode_temp % SFMLGUISettings::PtsDispayMode::PTS_DISPLAY_MODE_COUNT);
 
-    if (bool(std::stringstream(get_arg_value(args, "-S", "--scale")) >> sfml_settings.scale)) {
+    if (bool(std::stringstream(get_arg_value(args, "-S", "--scale")) >> sfml_settings.scale)) 
         sfml_settings.autoscale = false;
-    }
+
+    if (check_arg(args, "-B", "--bold"))
+        sfml_settings.bold_mode = true;
+
 
     sfml_settings.output_dir = output_dir;
 
