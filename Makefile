@@ -5,8 +5,8 @@ LIBS=-lsfml-graphics -lsfml-window -lsfml-system -lrplidar_sdk
 SFML=${CURDIR}/sfml
 RPLIDAR=${CURDIR}/rplidar_sdk
 
-lidar: main app cloud cloud-grabbers cloud-writers guis scenarios
-	$(CXX) --output vil \
+lidarvis: main app cloud cloud-grabbers cloud-writers guis scenarios
+	$(CXX) --output lidarvis \
 	main.o \
 	app.o \
 	cloud.o \
@@ -40,4 +40,4 @@ scenarios: src/scenarios.cpp
 	$(CXX) $(CPPFLAGS) -c src/scenarios.cpp
 
 clean:
-	rm -f *.o src/*.o vil
+	rm -f *.o src/*.o lidarvis
