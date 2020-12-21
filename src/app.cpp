@@ -254,8 +254,7 @@ bool App::parse_args(std::vector<std::string>& args) {
 
     if (check_arg(args, "-B", "--bold"))
         sfml_settings.bold_mode = true;
-
-
+    
     sfml_settings.output_dir = output_dir;
 
     gui_ = std::make_unique<SFMLGUI>(sfml_settings);
