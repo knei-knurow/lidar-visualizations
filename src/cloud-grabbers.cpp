@@ -38,8 +38,6 @@ bool CloudRPLIDARPortGrabber::read(Cloud& cloud) {
     pt_cyl.angle = buffer_[i].angle_z_q14 / 65536.0f * 360;
     pt_cyl.dist = buffer_[i].dist_mm_q2 / 4.0f;
 
-    if (pt_cyl.dist == 0)
-      continue;
     if (pt_cyl.dist > cloud.max) {
       cloud.max = pt_cyl.dist;
       cloud.max_idx = cloud.size;
@@ -229,8 +227,6 @@ bool CloudFileGrabber::read(Cloud& cloud) {
       std::stringstream sline(line);
       sline >> pt_cyl.angle >> pt_cyl.dist;
 
-      if (pt_cyl.dist == 0)
-        continue;
       if (pt_cyl.dist > cloud_.max) {
         cloud_.max = pt_cyl.dist;
         cloud_.max_idx = cloud_.size;
@@ -292,8 +288,6 @@ bool CloudFileSeriesGrabber::read(Cloud& cloud) {
     std::stringstream sline(line);
     sline >> pt_cyl.angle >> pt_cyl.dist;
 
-    if (pt_cyl.dist == 0)
-      continue;
     if (pt_cyl.dist > cloud.max) {
       cloud.max = pt_cyl.dist;
       cloud.max_idx = cloud.size;
