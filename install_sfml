@@ -24,6 +24,10 @@ fi
 if [ -d "sfml" ]; then
   printf "install_sfml: sfml directory already exists\n"
   exit 1
+else
+  printf "install_sfml: creating sfml directory..."
+  mkdir sfml
+  printf "ok\n"
 fi
 
 
@@ -44,14 +48,13 @@ case "$(uname -s)" in
 esac
 
 _log "install_sfml: downloading SFML..."
-curl -Ss "$download_url" > sfml.zip
+curl -Ss "$download_url" > sfml.tar.gz
 _log "ok\n"
 
 _log "install_sfml: extracting SFML..."
-tar -xf sfml.zip
+tar -xzf sfml.tar.gz --strip-components 1 -C sfml
 _log "ok\n"
 
-rm sfml.zip
+rm sfml.tar.gz
 
 printf "install_sfml: done\n"
-printf 'install_sfml: now you must rename the extracted directory to "sfml"\n'
