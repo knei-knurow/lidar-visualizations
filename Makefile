@@ -1,6 +1,6 @@
 CXX=g++
-CPPFLAGS=-std=c++17 -DUSING_SFML -DUSING_RPLIDAR
-LIBS=-lsfml-graphics -lsfml-window -lsfml-system -lrplidar_sdk
+CPPFLAGS=-std=c++17 -DUSING_SFML
+LIBS=-lsfml-graphics -lsfml-window -lsfml-system
 
 SFML=${CURDIR}/sfml
 RPLIDAR=${CURDIR}/rplidar_sdk
