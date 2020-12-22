@@ -29,17 +29,6 @@ _log "install_rplidar: cloning rplidar_sdk..."
 git clone "$rplidar_url" &>/dev/null
 _log "ok\n"
 
-# rplidar_sdk/sdk/sdk/include/rplidar.h includes "hal/types.h"m
-# but it cannot be found with the default rplidar_sdk project structure.
-# (It's probably some bug made by the rplidar_sdk authors)
-# That's why we're copying the hal folder (under "rplidar_sdk/sdk/sdk/src/hal")
-# to rplidar_sdk/sdk/sdk/include/hal.
-# Thanks to this sly move, the linker will be able to find it.
-
-_log "install_rplidar: moving the hal directory..."
-cp -r rplidar_sdk/sdk/sdk/src/hal rplidar_sdk/sdk/sdk/include
-_log "ok\n"
-
 _log "install_rplidar: making the sdk..."
 cd rplidar_sdk/sdk && make &>/dev/null
 _log "ok\n"
