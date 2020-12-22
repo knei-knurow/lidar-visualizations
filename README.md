@@ -10,7 +10,6 @@ This project uses **Slamtec RPLIDAR A3M1** device (described below).
 - [Binaries](#binaries)
 - [Compilation](#compilation)
     - [Linux, MacOS](#linux-macos)
-    - [Windows](#windows)
     - [Windows (Visual Studio)](#windows-visual-studio)
 - [Usage](#usage)
     - [Options](#options)
@@ -66,15 +65,25 @@ At the moment, ready-to-run binaries are only available for Windows. Have a look
 
 ### Linux, MacOS
 
-TODO
+1. Install RPLIDAR SDK:  
 
-### Windows
+   ```
+   ./install_rplidar
+   ```
 
-TODO
+2. Install SFML:
+
+   ```
+   ./install_sfml
+   ```
+
+3. Build:
+
+   ```
+   make 
+   ```
 
 ### Windows (Visual Studio)
-
-The project is developed using Visual Studio on Windows. There are some additional dependencies which should be considered (actually, you can compile without them but there will be no visualization nor rendering features*).
 
 1. Collect all requirements:
     - Visual Studio with C++ toolchain. [visualstudio.microsoft.com/](https://visualstudio.microsoft.com/)
@@ -93,7 +102,7 @@ The project is developed using Visual Studio on Windows. There are some addition
     
     - That's it. SDK is ready and you can close the VS project.
 3. Prepare SFML 2.5.1.:
-    
+   
     - Move the directory containing SFML 2.5.1 to the path of this repository and rename it to `SFML-2.5.1` **OR** update the paths in *sfml-debug.props* and *sfml-release.props*.
 4. Build:
     - Open the VS solution of *lidar-visualizations* - `lidar/lidar.sln`.
@@ -110,20 +119,44 @@ lidar [options]
 
 ### Options
 
+**Input (required)**:
+
 ```
--h  --help                     Display help.
-
--f  --file [filename]          Input cloud filename.
--fs --file-series [filename]   Input cloud series filename.
--p  --port [portname]          Connect to the RPLIDAR port.
-
--m  --mode [portname]          Connect to the RPLIDAR port.
--s  --scenario [id]            Specify scenario (default: 0).
--g  --gui [id]                 Specity GUI (default: 1).
--o  --rplidar-mode [id]        Specify the RPLIDAR scanning mode (default: 4).
+-f  --file [filename]          Input cloud filename
+-fs --file-series [filename]   Input cloud series filename
+-p  --port [portname]          Input RPLIDAR port*
 ```
 
-**Note**: RPLIDAR options are unavailable, if they haven't been compiled into the project (disabled `USING_RPLIDAR` macro).
+**General:**
+
+```
+-h  --help                     Display help
+-o  --output-dir [dirname]     Output dir
+-s  --scenario [id]            Specify scenario (default: 0)
+-g  --gui [id]                 Specity GUI (default: 1)
+```
+
+**RPLIDAR options\***
+
+```
+-m  --rplidar-mode [id]        RPLIDAR scanning mode (default: 4)
+-r  --rpm                      RPLIDAR revolutions per minute (default: 660, min: 170, max: 1023)
+```
+
+**SFML GUI options\*\***
+
+```
+-H  --height [val]              Window height (defualt: 1280)
+-W  --width [val]               Window width (defualt: 720)
+-C  --colormap [id]             Colormap (0, 1)
+-M  --ptr-mode [id]             Points display mode (0, 1, 2)
+-B  --bold                      Larger points
+-S  --scale [scale]             Scale (1mm -> 1px for scale = 1.0)
+```
+
+**\*** RPLIDAR options are unavailable, if they haven't been compiled into the project (disabled `USING_RPLIDAR` macro).
+
+**\*\*** SFML GUI options are unavailable, if they haven't been compiled into the project (disabled `USING_SFML` macro).
 
 ### Scenarios
 
@@ -143,7 +176,17 @@ GUIs are responsible for the visual layer of the application and interacting wit
 1    SFML GUI - default, the most beautiful one from the gallery.
 ```
 
-**Note**: If SFML GUI hasn't been compiled into the project (disabled `USING_SFML` macro), it will be unavailable.
+**SFML GUI Keyboard shortcuts**
+
+```
+T                 Save cloud to a TXT file
+S                 Save screenshot
+Arrows            Move cloud
+Moude scroll      Scale cloud
+Mouse middle      Reset position, autoscale cloud
+C                 Switch colormap
+M                 Switch points display mode
+```
 
 ### RPLIDAR Modes
 
