@@ -177,6 +177,18 @@ GUIs are responsible for the visual layer of the application and interacting wit
 1    SFML GUI - default, the most beautiful one from the gallery.
 ```
 
+**SFML GUI Keyboard shortcuts**
+
+```
+T                 Save cloud to a TXT file
+S                 Save screenshot
+Arrows            Move cloud
+Moude scroll      Scale cloud
+Mouse middle      Reset position, autoscale cloud
+C                 Switch colormap
+M                 Switch points display mode
+```
+
 ### RPLIDAR Modes
 
 RPLIDAR supports several scanning modes which differs by its application (indoor/outdoor), distance range, and sample rate. More details can be found in the documentation of the product. You should only consider the option 3 and 4, because the first three ones are here due to compatibility reasons and don't produce spectacular results.
