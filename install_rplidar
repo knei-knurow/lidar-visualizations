@@ -20,9 +20,17 @@ fi
 
 rplidar_url="https://github.com/Slamtec/rplidar_sdk.git"
 
+if [ -d rplidar_sdk ]; then
+  printf "install_rplidar: rplidar_sdk directory already exists\n"
+  exit 1
+fi
 
 _log "install_rplidar: cloning rplidar_sdk..."
 git clone "$rplidar_url" &>/dev/null
+_log "ok\n"
+
+_log "install_rplidar: making the sdk..."
+cd rplidar_sdk/sdk && make &>/dev/null
 _log "ok\n"
 
 printf "install_rplidar: done\n"

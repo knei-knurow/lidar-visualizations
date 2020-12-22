@@ -10,7 +10,7 @@ rplidar_sdk
 Release
 Debug
 *.o
-vil
+lidarvis
 
 # other
 *.user

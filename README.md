@@ -111,7 +111,7 @@ At the moment, ready-to-run binaries are only available for Windows. Have a look
 **\*** `lidar.sln` uses several project property files (*rplidar.props*, *sfml-debug.props*, *sfml-release.props*) which consist of relative include and library paths to RPLIDAR SDK and SFML, and define macros enabling sections of code that requires the specified dependencies (`USING_RPLIDAR`, `USING_SFML`). For example, if you remove SFML property files from the project, a compiler won't be looking for SFML and finally it will build the program without the SFML GUI. You can do the same with RPLIDAR, so you won't be able to receive data from it.
 
 ## Usage
-If you successfully downloaded or compiled LV, you are able to start some scanning and visualizing. The program can be controlled via command line in such a way:
+When you have the `lidarvis` executable , you are able to start some scanning and visualizing. The program can be controlled via command line in such a way:
 
 ```
 lidar [options]
