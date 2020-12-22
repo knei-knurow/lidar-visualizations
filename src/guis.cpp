@@ -210,6 +210,9 @@ void SFMLGUI::render_cloud(const Cloud& cloud, float lightness) {
     return;
 
   for (int i = 0; i < cloud.size; i++) {
+    if (cloud.pts_cyl[i].dist == 0)
+      continue;
+
     Color color;
     if (sets_.colormap == SFMLGUISettings::FROM_ANGLE) {
       color = calc_color_from_angle(float(i) / float(cloud.size), lightness);
@@ -228,6 +231,9 @@ void SFMLGUI::render_connected_cloud(const Cloud& cloud,
 
   sf::VertexArray vertex_arr(sf::PrimitiveType::LinesStrip);
   for (int i = 0; i < cloud.size; i++) {
+    if (cloud.pts_cyl[i].dist == 0)
+      continue;
+    
     Color color;
     if (sets_.colormap == SFMLGUISettings::FROM_ANGLE) {
       color = calc_color_from_angle(float(i) / float(cloud.size), lightness);
@@ -251,7 +257,8 @@ void SFMLGUI::render_connected_cloud(const Cloud& cloud,
 }
 
 void SFMLGUI::render_point(int x, int y, const Color& color) {
-  auto pt = sf::CircleShape(2);
+  auto pt = sf::CircleShape(sets_.bold_mode ? 5 : 2);
+
   pt.setOrigin(1, 1);
   pt.setPosition(x * sets_.scale + sets_.origin_x,
                  y * sets_.scale + sets_.origin_y);

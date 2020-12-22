@@ -59,10 +59,11 @@ struct SFMLGUISettings {
   float sleep_time_ms = 1000.0f / 30.0f;
 
   Color color_background = Color(16, 16, 24);
-  Color color_grid = Color(30, 30, 50);
+  Color color_grid = Color(40, 40, 50);
 
   bool render_mouse_ray = true;
   bool render_grid = true;
+  bool bold_mode = false;
   unsigned antialiasing = 8;
 
   std::string output_dir = ".";
