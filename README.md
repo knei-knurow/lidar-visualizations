@@ -10,7 +10,6 @@ This project uses **Slamtec RPLIDAR A3M1** device (described below).
 - [Binaries](#binaries)
 - [Compilation](#compilation)
     - [Linux, MacOS](#linux-macos)
-    - [Windows](#windows)
     - [Windows (Visual Studio)](#windows-visual-studio)
 - [Usage](#usage)
     - [Options](#options)
@@ -155,9 +154,9 @@ lidar [options]
 -S  --scale [scale]             Scale (1mm -> 1px for scale = 1.0)
 ```
 
-***** RPLIDAR options are unavailable, if they haven't been compiled into the project (disabled `USING_RPLIDAR` macro).
+**\*** RPLIDAR options are unavailable, if they haven't been compiled into the project (disabled `USING_RPLIDAR` macro).
 
-****** SFML GUI options are unavailable, if they haven't been compiled into the project (disabled `USING_SFML` macro).
+**\*\*** SFML GUI options are unavailable, if they haven't been compiled into the project (disabled `USING_SFML` macro).
 
 ### Scenarios
 
