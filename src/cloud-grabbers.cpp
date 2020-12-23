@@ -269,23 +269,36 @@ CloudFileSeriesGrabber::CloudFileSeriesGrabber(const std::string& filename) {
   clouds_cnt_ = 0;
   file_.open(filename_);
   open();
+  next_cloud_time_ = std::chrono::steady_clock::now();
 }
 
 bool CloudFileSeriesGrabber::read(Cloud& cloud) {
   if (!status_)
     return false;
 
+  if (std::chrono::steady_clock::now() < next_cloud_time_)
+      return true;
+
+  if (cloud.size == 0)
+      next_cloud_time_ = std::chrono::steady_clock::now();
+
   cloud = Cloud();
   while (file_.good()) {
     std::string line;
     std::getline(file_, line);
+    PointCyl pt_cyl;
+    std::stringstream sline(line);
+
     if (line.empty() || line[0] == '#') {
       continue;
     } else if (line[0] == '!') {
+      long long _, delay_ms = 0;
+      char __;
+      sline >> __ >> _ >> delay_ms;
+      next_cloud_time_ = std::chrono::steady_clock::now() 
+          + std::chrono::milliseconds(delay_ms);
       break;
     }
-    PointCyl pt_cyl;
-    std::stringstream sline(line);
     sline >> pt_cyl.angle >> pt_cyl.dist;
 
     if (pt_cyl.dist > cloud.max) {
@@ -311,6 +324,7 @@ bool CloudFileSeriesGrabber::read(Cloud& cloud) {
 
   if (cloud.size == 0) {
     std::cerr << "Cloud series end." << std::endl;
+    next_cloud_time_ += std::chrono::milliseconds(1000);
     file_.clear();
     file_.seekg(0);
     status_ = open();
