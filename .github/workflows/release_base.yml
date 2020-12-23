@@ -1,8 +1,10 @@
-name: Build Linux executable
+name: Build Linux release
 
 on:
   push:
     branches: [ main ]
+    tags: 
+      - "v*"
   pull_request:
     branches: [ main ]
 
@@ -20,15 +22,15 @@ jobs:
       run: make
     - name: Archive executable
       run: |
-        zip --junk-paths lidarvis.zip lidarvis
+        zip --junk-paths lidarvis_linux.zip lidarvis
     - name: Create Release
       id: create_release
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
+        tag_name: v${{ github.event.head_commit.message }}
+        release_name: v${{ github.event.head_commit.message }}
         draft: false
         prerelease: false
     - name: Upload Release Asset
@@ -38,6 +40,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./lidarvis.zip
-        asset_name: lidarvis.zip
+        asset_path: ./lidarvis_linux.zip
+        asset_name: lidarvis_linux.zip
         asset_content_type: application/zip
