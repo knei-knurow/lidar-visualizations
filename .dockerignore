@@ -1,0 +1,18 @@
+# tools
+.vs
+.vscode
+
+# dependency dirs
+sfml
+rplidar_sdk
+
+# generated stuff
+Release
+Debug
+*.o
+lidarvis
+
+# other
+*.user
+*.xcf
+.DS_Store

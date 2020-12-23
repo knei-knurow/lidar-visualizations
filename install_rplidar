@@ -29,8 +29,13 @@ _log "install_rplidar: cloning rplidar_sdk..."
 git clone "$rplidar_url" &>/dev/null
 _log "ok\n"
 
+# Disable strange warnings that arise...sometimes
+if [ $(uname -s) = "Linux" ]; then
+  `sed -i '57iCXXFLAGS += -Wno-narrowing' rplidar_sdk/sdk/mak_def.inc`
+fi
+
 _log "install_rplidar: making the sdk..."
-cd rplidar_sdk/sdk && make &>/dev/null
+cd rplidar_sdk/sdk && make CXXFLAGS=-Wno-narrowing &>/dev/null
 _log "ok\n"
 
 printf "install_rplidar: done\n"
