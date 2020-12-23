@@ -12,7 +12,7 @@ RUN ./install_sfml
 
 RUN ./install_rplidar
 
-RUN make
+RUN make lidarvis
 
 RUN LD_LIBRARY_PATH=/lidar-vis/sfml/lib
 

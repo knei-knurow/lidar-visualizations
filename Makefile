@@ -1,6 +1,14 @@
+# Explicitly define all variables that are used (even the "standard variables")
+# Usage:
+# To compile without dependencies: make lidarvis
+# To compile with SFML: make lidarvis USE_SFML=true
+# To compile with SFML and rplidar_sdk: make lidarvis USE_RPLIDAR=true
+# To compile with SFML and rplidar_sdk: make lidarvis USE_SFML=true USE_RPLIDAR=true
+
 CXX := g++
 CPPFLAGS := -std=c++17
 LIBS :=
+LDFLAGS :=
 
 SFML := ${CURDIR}/sfml
 RPLIDAR := ${CURDIR}/rplidar_sdk
@@ -15,7 +23,7 @@ $(info "compiling with sfml")
 CPPFLAGS += -DUSING_SFML
 LIBS += -lsfml-graphics -lsfml-window -lsfml-system
 SFML_INCLUDES += -I$(SFML)/include
-SFML_LIBS := -L$(SFML)/lib
+LDFLAGS += -L$(SFML)/lib
 endif
 
 ifeq ($(USE_RPLIDAR),true)
@@ -23,7 +31,7 @@ $(info "compiling with rplidar_sdk")
 CPPFLAGS += -DUSING_RPLIDAR
 LIBS += -lrplidar_sdk -pthread
 RPLIDAR_INCLUDES += -I$(RPLIDAR)/sdk/sdk/include -I$(RPLIDAR)/sdk/sdk/src
-RPLIDAR_LIBS := -L$(RPLIDAR)/sdk/output/$(OS)/Release
+LDFLAGS += -L$(RPLIDAR)/sdk/output/$(OS)/Release
 endif
 
 lidarvis: main.o app.o cloud.o cloud-grabbers.o cloud-writers.o guis.o scenarios.o
@@ -35,8 +43,7 @@ lidarvis: main.o app.o cloud.o cloud-grabbers.o cloud-writers.o guis.o scenarios
 	cloud-writers.o \
 	guis.o \
 	scenarios.o \
-	$(SFML_LIBS) \
-	$(RPLIDAR_LIBS) \
+	$(LDFLAGS) \
 	$(LIBS)
 
 main.o: src/main.cpp
