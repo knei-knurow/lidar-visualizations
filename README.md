@@ -69,11 +69,11 @@ The complete RPLIDAR specification and documentation is available below:
 
 ## Binaries
 
-We're still figuring out the automation process. Currently, some older releases
-are available for windows, and
+We're still figuring out the automation process, so in most cases, if you want
+to run the program, you need to compile it yourself.
 
-At the moment, ready-to-run binaries are only available for Windows. Have a look at the
-GitHub _Releases_ tab.
+Currently, some older SFML-enabled Windows binaries and some newer "base" Linux releases
+are available. Have a look at the GitHub _Releases_ tab.
 
 ## Compilation
 

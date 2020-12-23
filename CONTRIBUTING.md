@@ -10,13 +10,13 @@ issue, email, or any other method with the owners of this repository before maki
 
 ## Code stuff
 
-We use [`clang-format`](https://clang.llvm.org/docs/ClangFormat.html) to format the code according to the
-[Chromium style guide](https://chromium.googlesource.com/chromium/src/+/HEAD/styleguide/c++/c++.md).
+We use [`clang-format`](https://clang.llvm.org/docs/ClangFormat.html) to format the code according
+to the [Chromium style guide](https://chromium.googlesource.com/chromium/src/+/HEAD/styleguide/c++/c++.md).
 If you want to get your PR merged, format your code with `clang-format`.
 
 ## Markdown stuff
 
 - We format Markdown files with [Prettier](https://prettier.io/), so please, use it after you
   edited some `.md` file.
-- Don't let your lines exceed 100 characters of length (it's hard to read files with lines longer than ~100
-  characters in the terminal)
+- Don't let your lines exceed 100 characters of length (it's hard to read files with lines
+  longer than ~100 characters in the terminal)
