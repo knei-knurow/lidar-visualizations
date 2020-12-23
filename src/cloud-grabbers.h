@@ -6,6 +6,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <chrono>
 #include "cloud.h"
 #ifdef USING_RPLIDAR
 #include <rplidar.h>
@@ -90,4 +91,5 @@ class CloudFileSeriesGrabber : public CloudGrabber {
   std::string filename_;
   std::ifstream file_;
   size_t clouds_cnt_;
+  std::chrono::steady_clock::time_point next_cloud_time_;
 };
