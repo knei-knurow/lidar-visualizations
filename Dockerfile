@@ -1,6 +1,8 @@
-FROM alpine:latest
+FROM archlinux:latest
 
-RUN apk --no-cache add curl
+RUN pacman -Syyu --noconfirm
+
+RUN pacman -S --noconfirm sed git gcc make
 
 COPY . /lidar-vis
 
@@ -14,4 +16,4 @@ RUN make
 
 RUN LD_LIBRARY_PATH=/lidar-vis/sfml/lib
 
-CMD [ "./lidarvis" "-fs" "datasets/series/pokoj-podnoszenie-gora-dol.txt"]
+CMD [ "./lidarvis" "--gui", "0", "--file" "datasets/knei-1.txt" ]
