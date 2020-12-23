@@ -1,0 +1,21 @@
+name: Build Linux executable
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: install sfml
+      run: ./install_sfml
+    - name: install rplidar_sdk
+      run: ./install_rplidar
+    - name: make
+      run: make
