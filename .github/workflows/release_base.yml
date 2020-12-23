@@ -2,11 +2,8 @@ name: Build Linux release
 
 on:
   push:
-    branches: [ main ]
-    tags: 
+    tags:
       - "v*"
-  pull_request:
-    branches: [ main ]
 
 jobs:
   build:
