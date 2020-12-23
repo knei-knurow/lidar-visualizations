@@ -1,13 +1,13 @@
 CXX=g++
-CPPFLAGS=-std=c++17 -DUSING_SFML -DUSING_RPLIDAR
-LIBS=-lsfml-graphics -lsfml-window -lsfml-system -lrplidar_sdk -pthread
+CPPFLAGS=-std=c++17
+LIBS=
 
 SFML=${CURDIR}/sfml
 RPLIDAR=${CURDIR}/rplidar_sdk
 
 OS=$(shell uname -s)
 
-lidarvis: main.o app.o cloud.o cloud-grabbers.o cloud-writers.o guis.o scenarios.o
+lidarvis: handle_sfml handle_rplidar main.o app.o cloud.o cloud-grabbers.o cloud-writers.o guis.o scenarios.o
 	$(CXX) --output lidarvis \
 	main.o \
 	app.o \
@@ -19,6 +19,23 @@ lidarvis: main.o app.o cloud.o cloud-grabbers.o cloud-writers.o guis.o scenarios
 	-L$(SFML)/lib \
 	-L$(RPLIDAR)/sdk/output/$(OS)/Release \
 	$(LIBS)
+
+handle_sfml:
+ifeq ($(USING_SFML),true)
+	@echo "compiling with sfml"
+	CPPFLAGS+=-DUSING_SFML
+	LIBS+=-lsfml-graphics
+	LIBS+=-lsfml-window 
+	LIBS+=-lsfml-system 
+	LIBS+=-pthread
+endif
+
+handle_rplidar:
+ifeq ($(USING_RPLIDAR),true)
+	@echo "compiling with rplidar_sdk"
+	CPPFLAGS+=-DUSING_RPLIDAR
+	LIBS+=-lrplidar_sdk
+endif
 
 main.o: src/main.cpp
 	$(CXX) $(CPPFLAGS) -c src/main.cpp -I$(SFML)/include -I$(RPLIDAR)/sdk/sdk/include -I$(RPLIDAR)/sdk/sdk/src
