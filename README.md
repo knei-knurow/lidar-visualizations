@@ -233,18 +233,19 @@ Example:
 # A comment
 # ! ID Number   Elapsed time [ms]
 # Angle [°]   Distance [mm]
-! 1 0
+! 0 0
 120  100
 240  100
 360  100
-! 2 500
+! 1 500
 120  200
 240  200
 360  200
-! 3 500
+! 2 500
 120  300
 240  300
 360  300
+! 3 500
 ```
 
 Preview: 
