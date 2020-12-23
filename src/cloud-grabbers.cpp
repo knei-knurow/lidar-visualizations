@@ -295,7 +295,8 @@ bool CloudFileSeriesGrabber::read(Cloud& cloud) {
       long long _, delay_ms = 0;
       char __;
       sline >> __ >> _ >> delay_ms;
-      next_cloud_time_ += std::chrono::milliseconds(delay_ms);
+      next_cloud_time_ = std::chrono::steady_clock::now() 
+          + std::chrono::milliseconds(delay_ms);
       break;
     }
     sline >> pt_cyl.angle >> pt_cyl.dist;
@@ -320,9 +321,6 @@ bool CloudFileSeriesGrabber::read(Cloud& cloud) {
   }
 
   clouds_cnt_++;
-
-  if (!file_.good())
-    next_cloud_time_ += std::chrono::milliseconds(500);
 
   if (cloud.size == 0) {
     std::cerr << "Cloud series end." << std::endl;
