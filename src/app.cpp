@@ -69,11 +69,11 @@ void App::print_help() {
   std::cout << "\t-S <arg>  Select scenario" << std::endl;
   std::cout << std::endl;
   std::cout << "Scenarios:" << std::endl;
-  std::cout << "\t0\tsave point clouds from each frame as batched TXT file"
+  std::cout << "\t0\tsave point clouds from each frame as batched .txt file"
             << std::endl;
   std::cout << std::endl;
   std::cout << "GUI Mode Keyboard Shortcuts:" << std::endl;
-  std::cout << "\tT           save point cloud as TXT" << std::endl;
+  std::cout << "\tT           save point cloud as .txt" << std::endl;
   std::cout << "\tS           save screenshot" << std::endl;
   std::cout << "\tUp/Down     scale displayed cloud (faster with shift, slower "
                "with ctrl)"
@@ -238,23 +238,30 @@ bool App::parse_args(std::vector<std::string>& args) {
     SFMLGUISettings sfml_settings;
 
     unsigned colormap_temp = -1, display_mode_temp = -1;
-    std::stringstream(get_arg_value(args, "-W", "--width")) >> sfml_settings.width;
-    std::stringstream(get_arg_value(args, "-H", "--height")) >> sfml_settings.height;
+    std::stringstream(get_arg_value(args, "-W", "--width")) >>
+        sfml_settings.width;
+    std::stringstream(get_arg_value(args, "-H", "--height")) >>
+        sfml_settings.height;
 
-    if (bool(std::stringstream(get_arg_value(args, "-C", "--colormap")) >> colormap_temp))
-      sfml_settings.colormap = static_cast<SFMLGUISettings::Colormap>
-      (colormap_temp % SFMLGUISettings::Colormap::COLORMAP_COUNT);
+    if (bool(std::stringstream(get_arg_value(args, "-C", "--colormap")) >>
+             colormap_temp))
+      sfml_settings.colormap = static_cast<SFMLGUISettings::Colormap>(
+          colormap_temp % SFMLGUISettings::Colormap::COLORMAP_COUNT);
 
-    if (bool(std::stringstream(get_arg_value(args, "-M", "--ptr-mode")) >> display_mode_temp))
-      sfml_settings.pts_display_mode = static_cast<SFMLGUISettings::PtsDispayMode>
-      (display_mode_temp % SFMLGUISettings::PtsDispayMode::PTS_DISPLAY_MODE_COUNT);
+    if (bool(std::stringstream(get_arg_value(args, "-M", "--ptr-mode")) >>
+             display_mode_temp))
+      sfml_settings.pts_display_mode =
+          static_cast<SFMLGUISettings::PtsDispayMode>(
+              display_mode_temp %
+              SFMLGUISettings::PtsDispayMode::PTS_DISPLAY_MODE_COUNT);
 
-    if (bool(std::stringstream(get_arg_value(args, "-S", "--scale")) >> sfml_settings.scale)) 
-        sfml_settings.autoscale = false;
+    if (bool(std::stringstream(get_arg_value(args, "-S", "--scale")) >>
+             sfml_settings.scale))
+      sfml_settings.autoscale = false;
 
     if (check_arg(args, "-B", "--bold"))
-        sfml_settings.bold_mode = true;
-    
+      sfml_settings.bold_mode = true;
+
     sfml_settings.output_dir = output_dir;
 
     gui_ = std::make_unique<SFMLGUI>(sfml_settings);

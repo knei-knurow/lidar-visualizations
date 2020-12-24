@@ -218,7 +218,7 @@ GUIs are responsible for the visual layer of the application and interacting wit
 **SFML GUI Keyboard shortcuts**
 
 ```
-T                 Save cloud to a TXT file
+T                 Save cloud to .txt file
 S                 Save screenshot
 Arrows            Move cloud
 Moude scroll      Scale cloud
