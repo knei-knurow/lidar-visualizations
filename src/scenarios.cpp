@@ -3,8 +3,7 @@
 //
 //	RecordSeriesScenario
 //
-RecordSeriesScenario::RecordSeriesScenario(const std::string& output_dir,
-                                           CoordSystem coord_sys)
+RecordSeriesScenario::RecordSeriesScenario(const std::string& output_dir, CoordSystem coord_sys)
     : series_writer_(output_dir, coord_sys) {
   status_ = series_writer_.get_status();
 }
@@ -17,8 +16,7 @@ bool RecordSeriesScenario::update(Cloud& cloud) {
 //
 //	ScreenshotSeriesScenario
 //
-ScreenshotSeriesScenario::ScreenshotSeriesScenario(
-    std::function<bool()> screenshot_fn) {
+ScreenshotSeriesScenario::ScreenshotSeriesScenario(std::function<bool()> screenshot_fn) {
   screenshot_fn_ = screenshot_fn;
 }
 

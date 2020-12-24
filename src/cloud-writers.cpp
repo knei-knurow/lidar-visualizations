@@ -26,8 +26,7 @@ std::string CloudWriter::generate_filename(const std::string& ext,
 //
 //	CloudFileWriter
 //
-CloudFileWriter::CloudFileWriter(const std::string& output_dir,
-                                 CoordSystem coord_sys) {
+CloudFileWriter::CloudFileWriter(const std::string& output_dir, CoordSystem coord_sys) {
   output_dir_ = output_dir;
   files_cnt_ = 0;
   coord_sys_ = coord_sys;
@@ -36,8 +35,7 @@ CloudFileWriter::CloudFileWriter(const std::string& output_dir,
 bool CloudFileWriter::write(const Cloud& cloud) {
   std::string filename;
   if (coord_sys_ == CoordSystem::CART) {
-    filename =
-        generate_filename("txt", output_dir_, "cloud-cart", ++files_cnt_);
+    filename = generate_filename("txt", output_dir_, "cloud-cart", ++files_cnt_);
   } else if (coord_sys_ == CoordSystem::CYL) {
     filename = generate_filename("txt", output_dir_, "cloud-cyl", ++files_cnt_);
   }
@@ -50,8 +48,7 @@ bool CloudFileWriter::write(const Cloud& cloud) {
   }
 
   file << "# RPLIDAR SCAN DATA" << std::endl;
-  file << "# Software: https://github.com/knei-knurow/lidar-visualizations"
-       << std::endl;
+  file << "# Software: https://github.com/knei-knurow/lidar-visualizations" << std::endl;
   file << "# Authors: Szymon Bednorz, Bartek Dudek" << std::endl;
   if (coord_sys_ == CoordSystem::CART) {
     file << "# X Y" << std::endl;
@@ -72,8 +69,7 @@ bool CloudFileWriter::write(const Cloud& cloud) {
 //
 //	CloudFileSeriesWriter
 //
-CloudFileSeriesWriter::CloudFileSeriesWriter(const std::string& output_dir,
-                                             CoordSystem coord_sys) {
+CloudFileSeriesWriter::CloudFileSeriesWriter(const std::string& output_dir, CoordSystem coord_sys) {
   clouds_cnt_ = 0;
   coord_sys_ = coord_sys;
 
@@ -90,8 +86,7 @@ CloudFileSeriesWriter::CloudFileSeriesWriter(const std::string& output_dir,
     std::cerr << "ERROR: Unable to create cloud series file." << std::endl;
   }
   file_ << "# RPLIDAR SCAN DATA SERIES" << std::endl;
-  file_ << "# Software: https://github.com/knei-knurow/lidar-visualizations"
-        << std::endl;
+  file_ << "# Software: https://github.com/knei-knurow/lidar-visualizations" << std::endl;
   file_ << "# Authors: Szymon Bednorz, Bartek Dudek" << std::endl;
   file_ << "#" << std::endl;
   file_ << "# Each frame (360 deg full scan) is followed by its number and a "
@@ -116,9 +111,8 @@ bool CloudFileSeriesWriter::write(const Cloud& cloud) {
     time_begin_ = std::chrono::steady_clock::now();
   }
   auto time_now = std::chrono::steady_clock::now();
-  auto time_diff = std::chrono::duration_cast<std::chrono::milliseconds>(
-                       time_now - time_begin_)
-                       .count();
+  auto time_diff =
+      std::chrono::duration_cast<std::chrono::milliseconds>(time_now - time_begin_).count();
   time_begin_ = time_now;
 
   file_ << "! " << ++clouds_cnt_ << " " << time_diff << "\n";
