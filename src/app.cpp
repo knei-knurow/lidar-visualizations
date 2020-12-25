@@ -120,8 +120,8 @@ std::string App::get_arg_value(std::vector<std::string>& all_args,
 bool App::parse_args(std::vector<std::string>& args) {
   // Print help
   if (check_arg(args, "-h", "--help")) {
-        print_help();
-        return false;
+    print_help();
+    return false;
   }
 
   // Input RPLIDAR port name
