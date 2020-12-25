@@ -1,4 +1,5 @@
 #pragma once
+#include <chrono>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -6,7 +7,6 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include <chrono>
 #include "cloud.h"
 #ifdef USING_RPLIDAR
 #include <rplidar.h>
@@ -42,18 +42,16 @@ enum class RPLIDARScanModes {
 
 class CloudRPLIDARPortGrabber : public CloudGrabber {
  public:
-  CloudRPLIDARPortGrabber(
-      std::string portname,
-      int baudrate,
-      RPLIDARScanModes scan_mode = RPLIDARScanModes::SENSITIVITY,
-      int rpm = 660);
+  CloudRPLIDARPortGrabber(std::string portname,
+                          int baudrate,
+                          RPLIDARScanModes scan_mode = RPLIDARScanModes::SENSITIVITY,
+                          int rpm = 660);
   virtual ~CloudRPLIDARPortGrabber();
   virtual bool read(Cloud& cloud);
 
   bool print_info();
   bool print_health();
-  bool print_scan_modes(std::vector<rplidar::RplidarScanMode>& scan_modes,
-                        _u16& default_mode);
+  bool print_scan_modes(std::vector<rplidar::RplidarScanMode>& scan_modes, _u16& default_mode);
   bool launch();
   bool scan();
   void stop();

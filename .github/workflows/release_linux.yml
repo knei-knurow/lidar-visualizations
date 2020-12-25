@@ -26,8 +26,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: v${{ github.event.head_commit.message }}
-          release_name: v${{ github.event.head_commit.message }}
+          tag_name: vunnamed_tag
+          release_name: Unnamed release
           draft: false
           prerelease: false
       - name: Upload Release Asset

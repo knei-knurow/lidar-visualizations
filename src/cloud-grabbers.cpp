@@ -13,12 +13,12 @@ CloudRPLIDARPortGrabber::CloudRPLIDARPortGrabber(std::string portname,
   buffer_size_ = rplidar::RPlidarDriver::MAX_SCAN_NODES;
   buffer_ = new rplidar_response_measurement_node_hq_t[buffer_size_];
   if (rpm < 170 || rpm > 1023) {
-      std::cerr << "ERROR: RPM value should be between 170 and 1023." << std::endl;
-      rpm = 660;
+    std::cerr << "ERROR: RPM value should be between 170 and 1023." << std::endl;
+    rpm = 660;
   }
   rpm_ = rpm;
   if (!launch()) {
-      stop();
+    stop();
   }
 }
 
@@ -68,12 +68,11 @@ bool CloudRPLIDARPortGrabber::print_info() {
   std::cout << "LIDAR info:" << std::endl;
   std::cout << "  Model:         " << lidar_info.model << std::endl;
   std::cout << "  Firmware ver.: " << lidar_info.firmware_version << std::endl;
-  std::cout << "  Hardware ver.: " << unsigned(lidar_info.hardware_version)
-            << std::endl;
+  std::cout << "  Hardware ver.: " << unsigned(lidar_info.hardware_version) << std::endl;
   std::cout << "  Serial number: ";
   for (int i = 0; i < 16; i++) {
-    std::cout << std::setfill('0') << std::setw(2) << std::hex
-              << int(lidar_info.serialnum[i]) << std::dec;
+    std::cout << std::setfill('0') << std::setw(2) << std::hex << int(lidar_info.serialnum[i])
+              << std::dec;
   }
   std::cout << std::endl;
   return true;
@@ -101,9 +100,8 @@ bool CloudRPLIDARPortGrabber::print_health() {
   return true;
 }
 
-bool CloudRPLIDARPortGrabber::print_scan_modes(
-    std::vector<rplidar::RplidarScanMode>& scan_modes,
-    _u16& default_mode) {
+bool CloudRPLIDARPortGrabber::print_scan_modes(std::vector<rplidar::RplidarScanMode>& scan_modes,
+                                               _u16& default_mode) {
   if (!status_)
     return false;
 
@@ -111,8 +109,7 @@ bool CloudRPLIDARPortGrabber::print_scan_modes(
   auto res = driver_->getTypicalScanMode(default_mode);
   res = driver_->getAllSupportedScanModes(scan_modes);
   if (IS_FAIL(res)) {
-    std::cerr << "ERROR: Unable to get device scan modes response."
-              << std::endl;
+    std::cerr << "ERROR: Unable to get device scan modes response." << std::endl;
     return false;
   }
   std::cout << "Supported scan modes:" << std::endl;
@@ -158,9 +155,9 @@ bool CloudRPLIDARPortGrabber::launch() {
   std::cout << "Setting motor speed to [rpm]: " << rpm_ << std::endl;
   res = driver_->setMotorPWM(rpm_);
   if (IS_FAIL(res)) {
-      std::cout << "ERROR: Unable to set motor RPM." << std::endl;
-      status_ = false;
-      return false;
+    std::cout << "ERROR: Unable to set motor RPM." << std::endl;
+    status_ = false;
+    return false;
   }
   print_health();
   res = driver_->startScanExpress(false, _u16(scan_mode_));
@@ -201,8 +198,7 @@ void CloudRPLIDARPortGrabber::stop() {
 //
 //	CloudFileGrabber
 //
-CloudFileGrabber::CloudFileGrabber(const std::string& filename,
-                                   float rot_angle) {
+CloudFileGrabber::CloudFileGrabber(const std::string& filename, float rot_angle) {
   filename_ = filename;
   rot_angle_ = rot_angle;
   status_ = std::ifstream(filename_).good();
@@ -277,10 +273,10 @@ bool CloudFileSeriesGrabber::read(Cloud& cloud) {
     return false;
 
   if (std::chrono::steady_clock::now() < next_cloud_time_)
-      return true;
+    return true;
 
   if (cloud.size == 0)
-      next_cloud_time_ = std::chrono::steady_clock::now();
+    next_cloud_time_ = std::chrono::steady_clock::now();
 
   cloud = Cloud();
   while (file_.good()) {
@@ -295,8 +291,7 @@ bool CloudFileSeriesGrabber::read(Cloud& cloud) {
       long long _, delay_ms = 0;
       char __;
       sline >> __ >> _ >> delay_ms;
-      next_cloud_time_ = std::chrono::steady_clock::now() 
-          + std::chrono::milliseconds(delay_ms);
+      next_cloud_time_ = std::chrono::steady_clock::now() + std::chrono::milliseconds(delay_ms);
       break;
     }
     sline >> pt_cyl.angle >> pt_cyl.dist;
@@ -343,8 +338,7 @@ bool CloudFileSeriesGrabber::open() {
   }
 
   if (!file_.good()) {
-    std::cerr << "Error: File does not contain a valid cloud series."
-              << std::endl;
+    std::cerr << "Error: File does not contain a valid cloud series." << std::endl;
     status_ = false;
   }
   return status_;

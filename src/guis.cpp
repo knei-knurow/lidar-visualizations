@@ -22,8 +22,7 @@ bool TerminalGUI::update(const Cloud& cloud) {
 //	SFMLGUI
 //
 #ifdef USING_SFML
-SFMLGUI::SFMLGUI(const SFMLGUISettings& settings)
-    : cloud_writer_(settings.output_dir) {
+SFMLGUI::SFMLGUI(const SFMLGUISettings& settings) : cloud_writer_(settings.output_dir) {
   sets_ = settings;
   sets_.origin_x = sets_.width / 2;
   sets_.origin_y = sets_.height / 2;
@@ -32,16 +31,13 @@ SFMLGUI::SFMLGUI(const SFMLGUISettings& settings)
   window_settings.antialiasingLevel = sets_.antialiasing;
 
   window_.create(sf::VideoMode(sets_.width, sets_.height), "Lidar",
-                 sf::Style::Close | sf::Style::Titlebar | sf::Style::Resize,
-                 window_settings);
+                 sf::Style::Close | sf::Style::Titlebar | sf::Style::Resize, window_settings);
 
   for (int i = 0; i < int(StatusKey::COUNT); i++) {
     status_keys_[i] = false;
   }
 
   screenshots_cnt_ = 0;
-
-
 }
 
 bool SFMLGUI::update(const Cloud& cloud) {
@@ -119,12 +115,11 @@ void SFMLGUI::handle_input(const Cloud& cloud) {
       if (event.key.code == sf::Keyboard::R)
         sets_.render_mouse_ray = !sets_.render_mouse_ray;
       if (event.key.code == sf::Keyboard::C)
-        sets_.colormap = SFMLGUISettings::Colormap(
-            (sets_.colormap + 1) % SFMLGUISettings::COLORMAP_COUNT);
+        sets_.colormap =
+            SFMLGUISettings::Colormap((sets_.colormap + 1) % SFMLGUISettings::COLORMAP_COUNT);
       if (event.key.code == sf::Keyboard::M)
         sets_.pts_display_mode = SFMLGUISettings::PtsDispayMode(
-            (sets_.pts_display_mode + 1) %
-            SFMLGUISettings::PTS_DISPLAY_MODE_COUNT);
+            (sets_.pts_display_mode + 1) % SFMLGUISettings::PTS_DISPLAY_MODE_COUNT);
     }
 
     if (event.type == sf::Event::MouseWheelScrolled) {
@@ -190,12 +185,10 @@ void SFMLGUI::render_cloud_bars(const Cloud& cloud) {
 
     Color color;
     if (sets_.colormap == SFMLGUISettings::FROM_ANGLE) {
-      color = calc_color_from_angle(float(j * cloud.size / sets_.height) /
-                                    float(cloud.size));
+      color = calc_color_from_angle(float(j * cloud.size / sets_.height) / float(cloud.size));
     } else if (sets_.colormap == SFMLGUISettings::FROM_DIST) {
-      color = calc_color_from_dist(
-          cloud.pts_cyl[size_t(j * cloud.size / sets_.height)].dist, cloud.max,
-          1.0);
+      color = calc_color_from_dist(cloud.pts_cyl[size_t(j * cloud.size / sets_.height)].dist,
+                                   cloud.max, 1.0);
     }
 
     auto rect = sf::RectangleShape(sf::Vector2f(width, 1));
@@ -223,9 +216,7 @@ void SFMLGUI::render_cloud(const Cloud& cloud, float lightness) {
   }
 }
 
-void SFMLGUI::render_connected_cloud(const Cloud& cloud,
-                                     float lightness,
-                                     bool render_points) {
+void SFMLGUI::render_connected_cloud(const Cloud& cloud, float lightness, bool render_points) {
   if (cloud.size == 0)
     return;
 
@@ -233,7 +224,7 @@ void SFMLGUI::render_connected_cloud(const Cloud& cloud,
   for (int i = 0; i < cloud.size; i++) {
     if (cloud.pts_cyl[i].dist == 0)
       continue;
-    
+
     Color color;
     if (sets_.colormap == SFMLGUISettings::FROM_ANGLE) {
       color = calc_color_from_angle(float(i) / float(cloud.size), lightness);
@@ -246,10 +237,9 @@ void SFMLGUI::render_connected_cloud(const Cloud& cloud,
     }
 
     color.a = 128;
-    sf::Vertex vertex(
-        sf::Vector2f(cloud.pts_cart[i].x * sets_.scale + sets_.origin_x,
-                     cloud.pts_cart[i].y * sets_.scale + sets_.origin_y),
-        color);
+    sf::Vertex vertex(sf::Vector2f(cloud.pts_cart[i].x * sets_.scale + sets_.origin_x,
+                                   cloud.pts_cart[i].y * sets_.scale + sets_.origin_y),
+                      color);
     vertex_arr.append(vertex);
   }
   vertex_arr.append(vertex_arr[0]);
@@ -260,18 +250,15 @@ void SFMLGUI::render_point(int x, int y, const Color& color) {
   auto pt = sf::CircleShape(sets_.bold_mode ? 5 : 2);
 
   pt.setOrigin(1, 1);
-  pt.setPosition(x * sets_.scale + sets_.origin_x,
-                 y * sets_.scale + sets_.origin_y);
+  pt.setPosition(x * sets_.scale + sets_.origin_x, y * sets_.scale + sets_.origin_y);
   pt.setFillColor(color);
   window_.draw(pt);
 }
 
 void SFMLGUI::render_front_line(int x, int y) {
   sf::Vertex line[] = {
-      sf::Vertex(sf::Vector2f(sets_.origin_x, sets_.origin_y),
-                 sets_.color_grid),
-      sf::Vertex(sf::Vector2f(x * sets_.scale + sets_.origin_x,
-                              y * sets_.scale + sets_.origin_y),
+      sf::Vertex(sf::Vector2f(sets_.origin_x, sets_.origin_y), sets_.color_grid),
+      sf::Vertex(sf::Vector2f(x * sets_.scale + sets_.origin_x, y * sets_.scale + sets_.origin_y),
                  sets_.color_grid)};
   window_.draw(line, 2, sf::Lines);
 }
@@ -282,8 +269,8 @@ bool SFMLGUI::save_screenshot() {
   std::ostringstream oss;
   oss << std::put_time(&tm, "%d.%m.%Y-%H.%M.%S");
 
-  auto filename = sets_.output_dir + "/screenshot-" +
-                  std::to_string(++screenshots_cnt_) + "-" + oss.str() + ".png";
+  auto filename = sets_.output_dir + "/screenshot-" + std::to_string(++screenshots_cnt_) + "-" +
+                  oss.str() + ".png";
 
   sf::Texture texture;
   texture.create(sets_.width, sets_.height);

@@ -43,14 +43,11 @@ int App::run() {
 }
 
 void App::print_help() {
-  std::cout << "-----------------------------------------------------------"
-            << std::endl;
+  std::cout << "-----------------------------------------------------------" << std::endl;
   std::cout << "LIDAR Visualizations" << std::endl;
-  std::cout << "-----------------------------------------------------------"
-            << std::endl;
+  std::cout << "-----------------------------------------------------------" << std::endl;
   std::cout << "Authors: Bartek Dudek, Szymon Bednorz" << std::endl;
-  std::cout << "Source: https://github.com/knei-knurow/lidar-visualizations"
-            << std::endl;
+  std::cout << "Source: https://github.com/knei-knurow/lidar-visualizations" << std::endl;
   std::cout << std::endl;
   std::cout << "Usage:" << std::endl;
   std::cout << "\tlidar [options]" << std::endl;
@@ -90,10 +87,9 @@ void App::print_help() {
 bool App::check_arg(std::vector<std::string>& all_args,
                     const std::string& short_arg,
                     const std::string& long_arg) {
-  auto it = std::find_if(all_args.begin(), all_args.end(),
-                         [short_arg, long_arg](const std::string& s) {
-                           return s == short_arg || s == long_arg;
-                         });
+  auto it = std::find_if(
+      all_args.begin(), all_args.end(),
+      [short_arg, long_arg](const std::string& s) { return s == short_arg || s == long_arg; });
 
   if (it == all_args.end()) {
     return false;
@@ -107,10 +103,9 @@ std::string App::get_arg_value(std::vector<std::string>& all_args,
                                const std::string& short_arg,
                                const std::string& long_arg,
                                const std::string& default_value) {
-  auto it = std::find_if(all_args.begin(), all_args.end(),
-                         [short_arg, long_arg](const std::string& s) {
-                           return s == short_arg || s == long_arg;
-                         });
+  auto it = std::find_if(
+      all_args.begin(), all_args.end(),
+      [short_arg, long_arg](const std::string& s) { return s == short_arg || s == long_arg; });
 
   std::string value = default_value;
   if (it == all_args.end()) {
@@ -137,30 +132,25 @@ bool App::parse_args(std::vector<std::string>& args) {
   std::string cloud_filename = get_arg_value(args, "-f", "--file");
 
   // Input cloud series filename
-  std::string cloud_series_filename =
-      get_arg_value(args, "-fs", "--file-series");
+  std::string cloud_series_filename = get_arg_value(args, "-fs", "--file-series");
 
   // Output directory
   std::string output_dir = get_arg_value(args, "-o", "--output-dir", ".");
 
 #ifdef USING_RPLIDAR
   // RPLIDAR mode
-  std::string rplidar_mode_val =
-      get_arg_value(args, "-m", "--rplidar-mode",
-                    std::to_string(int(RPLIDARScanModes::SENSITIVITY)));
+  std::string rplidar_mode_val = get_arg_value(args, "-m", "--rplidar-mode",
+                                               std::to_string(int(RPLIDARScanModes::SENSITIVITY)));
   RPLIDARScanModes rplidar_mode;
   if (rplidar_mode_val == std::to_string(int(RPLIDARScanModes::STANDARD))) {
     rplidar_mode = RPLIDARScanModes::STANDARD;
-  } else if (rplidar_mode_val ==
-             std::to_string(int(RPLIDARScanModes::EXPRESS))) {
+  } else if (rplidar_mode_val == std::to_string(int(RPLIDARScanModes::EXPRESS))) {
     rplidar_mode = RPLIDARScanModes::EXPRESS;
   } else if (rplidar_mode_val == std::to_string(int(RPLIDARScanModes::BOOST))) {
     rplidar_mode = RPLIDARScanModes::BOOST;
-  } else if (rplidar_mode_val ==
-             std::to_string(int(RPLIDARScanModes::SENSITIVITY))) {
+  } else if (rplidar_mode_val == std::to_string(int(RPLIDARScanModes::SENSITIVITY))) {
     rplidar_mode = RPLIDARScanModes::SENSITIVITY;
-  } else if (rplidar_mode_val ==
-             std::to_string(int(RPLIDARScanModes::STABILITY))) {
+  } else if (rplidar_mode_val == std::to_string(int(RPLIDARScanModes::STABILITY))) {
     rplidar_mode = RPLIDARScanModes::STABILITY;
   } else {
     std::cerr << "ERROR: Invalid RPLIDAR mode id." << std::endl;
@@ -173,8 +163,7 @@ bool App::parse_args(std::vector<std::string>& args) {
 #endif
 
   // GUI
-  std::string gui_type_val =
-      get_arg_value(args, "-g", "--gui", std::to_string(int(GUIType::SFML)));
+  std::string gui_type_val = get_arg_value(args, "-g", "--gui", std::to_string(int(GUIType::SFML)));
   GUIType gui_type;
   if (gui_type_val == std::to_string(int(GUIType::TERMINAL))) {
     gui_type = GUIType::TERMINAL;
@@ -190,15 +179,14 @@ bool App::parse_args(std::vector<std::string>& args) {
   }
 
   // Scenario
-  std::string scenario_val = get_arg_value(
-      args, "-s", "--scenario", std::to_string(int(ScenarioType::IDLE)));
+  std::string scenario_val =
+      get_arg_value(args, "-s", "--scenario", std::to_string(int(ScenarioType::IDLE)));
   ScenarioType scenario_type;
   if (scenario_val == std::to_string(int(ScenarioType::IDLE))) {
     scenario_type = ScenarioType::IDLE;
   } else if (scenario_val == std::to_string(int(ScenarioType::RECORD_SERIES))) {
     scenario_type = ScenarioType::RECORD_SERIES;
-  } else if (scenario_val ==
-             std::to_string(int(ScenarioType::SCREENSHOT_SERIES))) {
+  } else if (scenario_val == std::to_string(int(ScenarioType::SCREENSHOT_SERIES))) {
     scenario_type = ScenarioType::SCREENSHOT_SERIES;
   } else {
     std::cerr << "ERROR: Invalid scenario id." << std::endl;
@@ -207,8 +195,7 @@ bool App::parse_args(std::vector<std::string>& args) {
 
   // Initialize the cloud grabber
   if (!cloud_series_filename.empty()) {
-    cloud_grabber_ =
-        std::make_unique<CloudFileSeriesGrabber>(cloud_series_filename);
+    cloud_grabber_ = std::make_unique<CloudFileSeriesGrabber>(cloud_series_filename);
     if (!cloud_grabber_->get_status())
       cloud_grabber_.reset(nullptr);
   } else if (!cloud_filename.empty()) {
@@ -218,8 +205,8 @@ bool App::parse_args(std::vector<std::string>& args) {
   }
 #ifdef USING_RPLIDAR
   else if (!rplidar_port.empty()) {
-    cloud_grabber_ = std::make_unique<CloudRPLIDARPortGrabber>(
-        rplidar_port, 256000, rplidar_mode, rplidar_rpm);
+    cloud_grabber_ =
+        std::make_unique<CloudRPLIDARPortGrabber>(rplidar_port, 256000, rplidar_mode, rplidar_rpm);
     if (!cloud_grabber_->get_status())
       cloud_grabber_.reset(nullptr);
   }
@@ -238,6 +225,7 @@ bool App::parse_args(std::vector<std::string>& args) {
     SFMLGUISettings sfml_settings;
 
     unsigned colormap_temp = -1, display_mode_temp = -1;
+
     std::stringstream(get_arg_value(args, "-W", "--width")) >>
         sfml_settings.width;
     std::stringstream(get_arg_value(args, "-H", "--height")) >>
@@ -276,12 +264,10 @@ bool App::parse_args(std::vector<std::string>& args) {
   else if (scenario_type == ScenarioType::SCREENSHOT_SERIES) {
     if (gui_type == GUIType::SFML) {
       auto gui_ptr = static_cast<SFMLGUI*>(gui_.get());
-      std::function<bool(void)> fn_ptr =
-          std::bind(&SFMLGUI::save_screenshot, gui_ptr);
+      std::function<bool(void)> fn_ptr = std::bind(&SFMLGUI::save_screenshot, gui_ptr);
       scenario_ = std::make_unique<ScreenshotSeriesScenario>(fn_ptr);
     } else {
-      std::cerr << "ERROR: Selected GUI and scenario are not compatible."
-                << std::endl;
+      std::cerr << "ERROR: Selected GUI and scenario are not compatible." << std::endl;
       return false;
     }
   }

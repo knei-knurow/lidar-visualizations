@@ -26,12 +26,9 @@ class Scenario {
 
 class RecordSeriesScenario : public Scenario {
  public:
-  RecordSeriesScenario(const std::string& output_dir,
-                       CoordSystem coord_sys = CoordSystem::CYL);
+  RecordSeriesScenario(const std::string& output_dir, CoordSystem coord_sys = CoordSystem::CYL);
   virtual bool update(Cloud& cloud);
-  inline virtual ScenarioType get_type() const {
-    return ScenarioType::RECORD_SERIES;
-  }
+  inline virtual ScenarioType get_type() const { return ScenarioType::RECORD_SERIES; }
 
  private:
   CloudFileSeriesWriter series_writer_;
@@ -42,9 +39,7 @@ class ScreenshotSeriesScenario : public Scenario {
  public:
   ScreenshotSeriesScenario(std::function<bool()> screenshot_fn);
   virtual bool update(Cloud& cloud);
-  inline virtual ScenarioType get_type() const {
-    return ScenarioType::SCREENSHOT_SERIES;
-  }
+  inline virtual ScenarioType get_type() const { return ScenarioType::SCREENSHOT_SERIES; }
 
  private:
   std::function<bool()> screenshot_fn_;

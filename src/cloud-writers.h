@@ -26,8 +26,7 @@ class CloudWriter {
 
 class CloudFileWriter : public CloudWriter {
  public:
-  CloudFileWriter(const std::string& output_dir,
-                  CoordSystem coord_sys = CoordSystem::CYL);
+  CloudFileWriter(const std::string& output_dir, CoordSystem coord_sys = CoordSystem::CYL);
   virtual bool write(const Cloud& cloud);
 
  private:
@@ -38,8 +37,7 @@ class CloudFileWriter : public CloudWriter {
 
 class CloudFileSeriesWriter : public CloudWriter {
  public:
-  CloudFileSeriesWriter(const std::string& output_dir,
-                        CoordSystem coord_sys = CoordSystem::CYL);
+  CloudFileSeriesWriter(const std::string& output_dir, CoordSystem coord_sys = CoordSystem::CYL);
   virtual ~CloudFileSeriesWriter();
   virtual bool write(const Cloud& cloud);
 

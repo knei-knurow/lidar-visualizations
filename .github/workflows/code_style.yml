@@ -1,12 +1,23 @@
 name: Check code style
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - name: clang-format
-      uses: jidicula/clang-format-action@v1.1.1
+      - uses: actions/checkout@v2
+      - name: clang-format
+        uses: DoozyX/clang-format-lint-action@v0.11
+        with:
+          source: "./src"
+          clangFormatVersion: 11
+          inplace: True
+      - uses: EndBug/add-and-commit@v4
+        with:
+          author_name: clang-format (auto)
+          author_email: noreply@example.com
+          message: "fix code style using clang-format"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
