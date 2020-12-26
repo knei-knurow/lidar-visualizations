@@ -55,7 +55,9 @@ void App::print_help() {
             << "\tInput (required):\n"
             << "\t-f  --file [filename]        Input cloud filename\n"
             << "\t-fs --file-series [filename] Input cloud series filename\n"
-            << "\t-p  --port [portname]        Input RPLIDAR port*\n"
+#ifdef USING_RPLIDAR
+            << "\t-p  --port [portname]        Input RPLIDAR port\n"
+#endif
             << "\n"
             << "\tGeneral:\n"
             << "\t-h  --help                   Display help\n"
