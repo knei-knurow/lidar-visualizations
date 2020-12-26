@@ -43,44 +43,76 @@ int App::run() {
 }
 
 void App::print_help() {
-  std::cout << "-----------------------------------------------------------" << std::endl;
-  std::cout << "LIDAR Visualizations" << std::endl;
-  std::cout << "-----------------------------------------------------------" << std::endl;
-  std::cout << "Authors: Bartek Dudek, Szymon Bednorz" << std::endl;
-  std::cout << "Source: https://github.com/knei-knurow/lidar-visualizations" << std::endl;
-  std::cout << std::endl;
-  std::cout << "Usage:" << std::endl;
-  std::cout << "\tlidar [options]" << std::endl;
-  std::cout << std::endl;
-  std::cout << "Options:" << std::endl;
-  std::cout << "\t-f <arg>  file with lines containing angle [deg] and "
-               "distance [mm] separated by whitespaces"
-            << std::endl;
-  std::cout << "\t-h        Show this message" << std::endl;
-  std::cout << "\t-o <arg>  Output directory" << std::endl;
-  std::cout << "\t-p <arg>  RPLidar port" << std::endl;
-  std::cout << "\t-r        Disable mouse ray" << std::endl;
-  std::cout << "\t-s <arg>  Select display scale (1mm -> 1px for scale = 1.0; "
-               "set 0 to autoscale)"
-            << std::endl;
-  std::cout << "\t-S <arg>  Select scenario" << std::endl;
-  std::cout << std::endl;
-  std::cout << "Scenarios:" << std::endl;
-  std::cout << "\t0\tsave point clouds from each frame as batched .txt file" << std::endl;
-  std::cout << std::endl;
-  std::cout << "GUI Mode Keyboard Shortcuts:" << std::endl;
-  std::cout << "\tT           save point cloud as .txt" << std::endl;
-  std::cout << "\tS           save screenshot" << std::endl;
-  std::cout << "\tUp/Down     scale displayed cloud (faster with shift, slower "
-               "with ctrl)"
-            << std::endl;
-  std::cout << "\tLeft/Right  rotate cloud (faster with shift, slower with "
-               "ctrl; only with files)"
-            << std::endl;
-  std::cout << "\tP           rotation on/off (only with files)" << std::endl;
-  std::cout << "\tC           switch color maps" << std::endl;
-  std::cout << "\tM           switch point cloud display modes" << std::endl;
-  std::cout << "\tR           mouse ray display on/off" << std::endl;
+  std::cout << "-----------------------------------------------------------\n"
+            << "Lidar Visualizations\n"
+            << "-----------------------------------------------------------\n"
+            << "Source: https://github.com/knei-knurow/lidar-visualizations\n"
+            << "\n"
+            << "Usage:\n"
+            << "\tlidar [options]\n"
+            << "\n"
+            << "Options:\n"
+            << "\tInput (required):\n"
+            << "\t-f  --file [filename]        Input cloud filename\n"
+            << "\t-fs --file-series [filename] Input cloud series filename\n"
+#ifdef USING_RPLIDAR
+            << "\t-p  --port [portname]        Input RPLIDAR port\n"
+#endif
+            << "\n"
+            << "\tGeneral:\n"
+            << "\t-h  --help                   Display help\n"
+            << "\t-o  --output-dir [dirname]   Output dir:\n"
+            << "\t-s  --scenario [id]          Specify scenario (default: 0)\n"
+            << "\t-g  --gui [id]               Specity GUI (default: 1)\n"
+#ifdef USING_RPLIDAR
+            << "\n"
+            << "\tRPLIDAR options:\n"
+            << "\t-m  --rplidar-mode [id]        RPLIDAR scanning mode (default: 4)\n"
+            << "\t-r  --rpm                      RPLIDAR revolutions per minute (default: 660, "
+               "min: 170, max: 1023)\n"
+#endif
+#ifdef USING_SFML
+            << "\n"
+            << "\tSFML GUI options:\n"
+            << "\t-H  --height [val]             Window height (defualt: 1280)\n"
+            << "\t-W  --width [val]              Window width (defualt: 720)\n"
+            << "\t-C  --colormap [id]            Colormap (0, 1)\n"
+            << "\t-M  --ptr-mode [id]            Points display mode (0, 1, 2)\n"
+            << "\t-B  --bold                     Larger points\n"
+            << "\t-S  --scale [scale]            Scale (1mm -> 1px for scale = 1.0)\n"
+#endif
+            << "\n"
+            << "Scenarios:\n"
+            << "\t0    Do nothing, just grab a cloudand visualize (default)\n"
+            << "\t1    Save each cloud as a part of cloud series\n"
+            << "\t2    Save each cloud as a new screenshot (extremely unoptimized)\n"
+            << "\n"
+            << "GUIs:\n"
+            << "\t0    Terminal GUI - prints data as a list of points on stdout\n"
+#ifdef USING_SFML
+            << "\t1    SFML GUI - default, the most beautiful one from the gallery\n"
+#endif
+#ifdef USING_RPLIDAR
+            << "\n"
+            << "RPLIDAR modes:\n"
+            << "\t0    Standard\n"
+            << "\t1    Express\n"
+            << "\t2    Boost\n"
+            << "\t3    Sensitivity (default)\n"
+            << "\t4    Stability\n"
+#endif
+#ifdef USING_SFML
+            << "\n"
+            << "SFML GUI Keyboard Shortcuts:\n"
+            << "\tT                 Save cloud to a .txt file\n"
+            << "\tS                 Save screenshot\n"
+            << "\tArrows            Move cloud\n"
+            << "\tMoude scroll      Scale cloud\n"
+            << "\tMouse middle      Reset position, autoscale cloud\n"
+            << "\tC                 Switch colormap\n"
+            << "\tM                 Switch points display mode\n"
+#endif
+            << "";
 }
 
 bool App::check_arg(std::vector<std::string>& all_args,
@@ -211,7 +243,7 @@ bool App::parse_args(std::vector<std::string>& args) {
   }
 #endif
   if (!cloud_grabber_ && !gui_ && !scenario_) {
-    std::cerr << "ERROR: No input data has been provided." << std::endl;
+    print_help();
     return false;
   }
 
