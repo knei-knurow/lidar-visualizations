@@ -17,9 +17,7 @@ CloudRPLIDARPortGrabber::CloudRPLIDARPortGrabber(std::string portname,
     rpm = 660;
   }
   rpm_ = rpm;
-  if (!launch()) {
-    stop();
-  }
+  launch();
 }
 
 CloudRPLIDARPortGrabber::~CloudRPLIDARPortGrabber() {
