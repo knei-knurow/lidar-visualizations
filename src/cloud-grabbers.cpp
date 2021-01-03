@@ -271,7 +271,7 @@ bool CloudFileSeriesGrabber::read(Cloud& cloud) {
     return false;
 
   if (std::chrono::steady_clock::now() < next_cloud_time_)
-    return true;
+      std::this_thread::sleep_until(next_cloud_time_);
 
   if (cloud.size == 0)
     next_cloud_time_ = std::chrono::steady_clock::now();

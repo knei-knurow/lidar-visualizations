@@ -25,7 +25,7 @@ int App::run() {
 
     // Do some additional things, depending on the selected scenario
     if (running_ && scenario_) {
-      if (!scenario_->update(cloud)) {
+        if (!scenario_->update(cloud)) {
         running_ = false;
       }
     }
