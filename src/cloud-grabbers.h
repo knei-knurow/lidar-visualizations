@@ -6,6 +6,7 @@
 #include <numeric>
 #include <sstream>
 #include <string>
+#include <thread>
 #include <vector>
 #include "cloud.h"
 #ifdef USING_RPLIDAR
