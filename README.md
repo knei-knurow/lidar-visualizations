@@ -94,7 +94,7 @@ are available. Have a look at the GitHub _Releases_ tab.
 3. Build:
 
    ```
-   make
+   make USE_SFML=true USE_RPLIDAR=true
    ```
 
 ### Windows (Visual Studio)
