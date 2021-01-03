@@ -1,12 +1,12 @@
 #pragma once
 #include <chrono>
-#include <thread>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <numeric>
 #include <sstream>
 #include <string>
+#include <thread>
 #include <vector>
 #include "cloud.h"
 #ifdef USING_RPLIDAR
