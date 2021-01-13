@@ -30,6 +30,8 @@ This project uses **Slamtec RPLIDAR A3M1** device (described below).
 
 ## Gallery
 
+[Youtube video](https://www.youtube.com/watch?v=MQhYTqz40xI)
+
 Indoor scanning:
 
 ![doc/screenshots/garden.gif](doc/screenshots/room.gif)
