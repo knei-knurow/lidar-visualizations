@@ -150,8 +150,14 @@ You can do the same with RPLIDAR, so you won't be able to receive data from it.
 When you have the `lidarvis` executable , you are able to start some scanning and visualizing.
 The program can be controlled via command line in such a way:
 
-```
+```sh
 lidar [options]
+```
+
+## Usage with docker
+
+```sh
+docker run -v absolute_path_to_datasets:/home lidar -f /home/file.txt
 ```
 
 ### Options
