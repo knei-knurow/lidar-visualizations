@@ -1,6 +1,8 @@
 # tools
 .vs
 .vscode
+.git
+.github
 
 # dependency dirs
 sfml
@@ -16,3 +18,13 @@ lidarvis
 *.user
 *.xcf
 .DS_Store
+doc
+README.md
+.gitattributes
+.gitignore
+CONTRIBUTING.md
+install_rplidar
+install_sfml
+datasets
+vs
+.clang-format

@@ -1,19 +1,7 @@
-FROM archlinux:latest
-
-RUN pacman -Syyu --noconfirm
-
-RUN pacman -S --noconfirm sed git gcc make
-
-COPY . /lidar-vis
-
-WORKDIR /lidar-vis
-
-RUN ./install_sfml
-
-RUN ./install_rplidar
-
+FROM gcc:latest AS build
+ADD . /home/lidar
+WORKDIR /home/lidar
 RUN make lidarvis
-
-RUN LD_LIBRARY_PATH=/lidar-vis/sfml/lib
-
-CMD [ "./lidarvis" "--gui", "0", "--file" "datasets/knei-1.txt" ]
+FROM gcc:latest
+COPY --from=build /home/lidar/lidarvis /bin/lidarvis
+ENTRYPOINT ["/bin/lidarvis", "-g", "0"]
