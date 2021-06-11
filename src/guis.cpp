@@ -242,7 +242,8 @@ void SFMLGUI::render_connected_cloud(const Cloud& cloud, float lightness, bool r
                       color);
     vertex_arr.append(vertex);
   }
-  if (vertex_arr.getVertexCount() == 0) return;
+  if (vertex_arr.getVertexCount() == 0)
+    return;
   vertex_arr.append(vertex_arr[0]);
   window_.draw(vertex_arr);
 }
